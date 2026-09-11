@@ -1,4 +1,4 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 
 // Lấy URL Backend từ biến môi trường (nếu có cấu hình trên Vercel hoặc file .env)
 // Nếu ở production và không có biến môi trường, tự động fallback sang URL Render
