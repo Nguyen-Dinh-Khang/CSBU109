@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api, { API_BASE_URL } from '../api';
 import '../App.css';
 
 export default function Dashboard({ onBackToGame }) {
@@ -19,12 +19,12 @@ export default function Dashboard({ onBackToGame }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get('/api/status');
+      const res = await api.get('/api/status');
       setServerStatus(res.data);
     } catch (err) {
       console.error('Lỗi khi gọi /api/status:', err);
       setError(
-        'Không thể kết nối đến Backend. Hãy đảm bảo bạn đã khởi chạy server backend (cd backend && npm run dev).'
+        `Không thể kết nối đến Backend (${API_BASE_URL || 'http://localhost:5000'}). Vui lòng kiểm tra server Render hoặc backend local.`
       );
       setServerStatus(null);
     } finally {
@@ -36,7 +36,7 @@ export default function Dashboard({ onBackToGame }) {
   const fetchItems = async () => {
     setItemsLoading(true);
     try {
-      const res = await axios.get('/api/items');
+      const res = await api.get('/api/items');
       setItems(res.data.items || []);
     } catch (err) {
       console.error('Lỗi khi lấy items:', err);
@@ -47,7 +47,7 @@ export default function Dashboard({ onBackToGame }) {
 
   useEffect(() => {
     let ignore = false;
-    axios
+    api
       .get('/api/status')
       .then((res) => {
         if (!ignore) {
@@ -59,14 +59,14 @@ export default function Dashboard({ onBackToGame }) {
         if (!ignore) {
           console.error('Lỗi khi gọi /api/status:', err);
           setError(
-            'Không thể kết nối đến Backend. Hãy đảm bảo bạn đã khởi chạy server backend (cd backend && npm run dev).'
+            `Không thể kết nối đến Backend (${API_BASE_URL || 'http://localhost:5000'}). Vui lòng kiểm tra server Render hoặc backend local.`
           );
           setServerStatus(null);
           setLoading(false);
         }
       });
 
-    axios
+    api
       .get('/api/items')
       .then((res) => {
         if (!ignore) {
@@ -94,7 +94,7 @@ export default function Dashboard({ onBackToGame }) {
     setSubmitting(true);
     setActionMessage('');
     try {
-      await axios.post('/api/items', { title, description });
+      await api.post('/api/items', { title, description });
       setActionMessage('✓ Đã thêm dữ liệu thành công!');
       setTitle('');
       setDescription('');
@@ -115,7 +115,7 @@ export default function Dashboard({ onBackToGame }) {
       return;
     }
     try {
-      await axios.delete(`/api/items/${id}`);
+      await api.delete(`/api/items/${id}`);
       fetchItems();
       setActionMessage('✓ Đã xóa item.');
     } catch {
@@ -161,8 +161,11 @@ export default function Dashboard({ onBackToGame }) {
             </div>
           ) : (
             <div>
-              <p className="status-badge badge-green">Đang hoạt động (Online - Port 5000)</p>
+              <p className="status-badge badge-green">Đang hoạt động (Online)</p>
               <p className="card-note">{serverStatus?.message}</p>
+              <p className="card-note" style={{ fontSize: '0.82rem', marginTop: '6px' }}>
+                🔗 API: <code>{API_BASE_URL || 'http://localhost:5000'}</code>
+              </p>
             </div>
           )}
           <button className="btn btn-secondary" onClick={checkStatus} disabled={loading}>
