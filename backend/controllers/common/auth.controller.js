@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TÊN FILE: auth.controller.js
  * CÔNG DỤNG: Tiếp nhận HTTP request cho các luồng đăng ký, đăng nhập, làm mới token và đăng xuất.
  * PHẠM VI DÙNG: Toàn hệ thống (Common).
@@ -9,14 +9,16 @@ import * as authService from '../../services/common/auth.service.js';
 /**
  * Hàm hỗ trợ thiết lập Cookie HttpOnly chứa Refresh Token.
  * @param {object} res - Response object của Express
+ * @param {object} req - Request object của Express
  * @param {string} token - Chuỗi Refresh Token
  */
-function setRefreshTokenCookie(res, token) {
+function setRefreshTokenCookie(res, req, token) {
   const isProduction = process.env.NODE_ENV === 'production';
+  const isSecure = isProduction || (req && (req.secure || req.headers['x-forwarded-proto'] === 'https'));
   res.cookie('refreshToken', token, {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
+    secure: Boolean(isSecure),
+    sameSite: isSecure ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
   });
 }
@@ -45,7 +47,7 @@ export async function register(req, res) {
     }
 
     const result = await authService.register({ email, username, password });
-    setRefreshTokenCookie(res, result.refreshToken);
+    setRefreshTokenCookie(res, req, result.refreshToken);
 
     return res.status(201).json({
       success: true,
@@ -78,7 +80,7 @@ export async function login(req, res) {
     }
 
     const result = await authService.login({ identifier, password });
-    setRefreshTokenCookie(res, result.refreshToken);
+    setRefreshTokenCookie(res, req, result.refreshToken);
 
     return res.status(200).json({
       success: true,
@@ -110,7 +112,7 @@ export async function refresh(req, res) {
     }
 
     const result = await authService.refreshAccessToken(token);
-    setRefreshTokenCookie(res, result.refreshToken);
+    setRefreshTokenCookie(res, req, result.refreshToken);
 
     return res.status(200).json({
       success: true,
@@ -133,10 +135,11 @@ export async function refresh(req, res) {
 export async function logout(req, res) {
   try {
     const isProduction = process.env.NODE_ENV === 'production';
+    const isSecure = isProduction || (req && (req.secure || req.headers['x-forwarded-proto'] === 'https'));
     res.clearCookie('refreshToken', {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      secure: Boolean(isSecure),
+      sameSite: isSecure ? 'none' : 'lax',
     });
 
     if (req.user?.id) {

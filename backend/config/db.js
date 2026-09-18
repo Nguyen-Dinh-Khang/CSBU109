@@ -1,5 +1,14 @@
+/**
+ * TÊN FILE: db.js
+ * CÔNG DỤNG: Cấu hình kết nối cơ sở dữ liệu MongoDB Atlas với tên database cố định 'csbu109'.
+ * PHẠM VI DÙNG: Toàn hệ thống Backend (Config).
+ */
+
 import mongoose from 'mongoose';
 
+/**
+ * Khởi tạo kết nối tới cơ sở dữ liệu MongoDB Atlas, chỉ định tường minh dbName là 'csbu109'.
+ */
 export const connectDB = async () => {
   const uri = process.env.MONGODB_URI;
 
@@ -10,13 +19,22 @@ export const connectDB = async () => {
   }
 
   try {
-    const conn = await mongoose.connect(uri);
-    console.log('\x1b[32m%s\x1b[0m', `✓ [MongoDB] Kết nối thành công tới máy chủ: ${conn.connection.host}`);
+    const conn = await mongoose.connect(uri, {
+      dbName: 'csbu109',
+    });
+    console.log(
+      '\x1b[32m%s\x1b[0m',
+      `✓ [MongoDB] Kết nối thành công tới database '${conn.connection.name}' trên máy chủ: ${conn.connection.host}`
+    );
   } catch (error) {
     console.error('\x1b[31m%s\x1b[0m', `✗ [MongoDB] Lỗi khi kết nối database: ${error.message}`);
   }
 };
 
+/**
+ * Lấy trạng thái kết nối hiện tại của cơ sở dữ liệu MongoDB.
+ * @returns {object} - Gồm mã trạng thái, cờ isConnected, chuỗi mô tả và tên database
+ */
 export const getDBStatus = () => {
   // readyState: 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
   const states = {
@@ -30,6 +48,8 @@ export const getDBStatus = () => {
     code: stateCode,
     isConnected: stateCode === 1,
     statusText: states[stateCode] || 'Không xác định',
-    hasConfiguredUri: Boolean(process.env.MONGODB_URI && process.env.MONGODB_URI.trim() !== '')
+    databaseName: mongoose.connection.name || 'csbu109',
+    hasConfiguredUri: Boolean(process.env.MONGODB_URI && process.env.MONGODB_URI.trim() !== ''),
   };
 };
+

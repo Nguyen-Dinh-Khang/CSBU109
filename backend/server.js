@@ -17,6 +17,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Bật tin cậy reverse proxy của Render / Vercel để nhận diện chính xác HTTPS
+app.set('trust proxy', 1);
+
 // Khởi chạy kết nối MongoDB
 connectDB();
 
