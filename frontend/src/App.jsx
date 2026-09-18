@@ -1,20 +1,7 @@
-import { useState } from 'react';
-import SnakeGame from './components/SnakeGame';
-import Dashboard from './components/Dashboard';
+﻿/**
+ * TÊN FILE: App.jsx
+ * CÔNG DỤNG: Tái xuất (re-export) Root App Component từ thư mục kiến trúc src/app/.
+ * PHẠM VI DÙNG: Cấp 0.
+ */
 
-function App() {
-  // Mặc định giao diện đầu tiên khi mở trang là trò chơi Rắn săn mồi
-  const [currentView, setCurrentView] = useState('snake');
-
-  return (
-    <>
-      {currentView === 'snake' ? (
-        <SnakeGame onOpenDashboard={() => setCurrentView('dashboard')} />
-      ) : (
-        <Dashboard onBackToGame={() => setCurrentView('snake')} />
-      )}
-    </>
-  );
-}
-
-export default App;
+export { default, App } from './app/App.jsx';

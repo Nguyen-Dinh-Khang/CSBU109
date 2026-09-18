@@ -1,0 +1,31 @@
+﻿/**
+ * TÊN FILE: App.module.scss
+ * CÔNG DỤNG: Khung giao diện toàn trang (Global Shell Layout) cho ứng dụng.
+ * PHẠM VI DÙNG: Cấp 0 - App.
+ */
+
+@use './styles/variables' as *;
+@use './styles/mixins' as *;
+
+.appShell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: $color-bg;
+  color: $color-text-main;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.footer {
+  border-top: 1px solid $color-border;
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: $color-text-dim;
+  background-color: $color-surface;
+}

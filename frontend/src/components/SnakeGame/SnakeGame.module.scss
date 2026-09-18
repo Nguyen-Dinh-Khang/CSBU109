@@ -1,4 +1,13 @@
-.snake-page {
+﻿/**
+ * TÊN FILE: SnakeGame.module.scss
+ * CÔNG DỤNG: Định dạng SCSS Module cho trò chơi Rắn săn mồi retro neon.
+ * PHẠM VI DÙNG: Phân hệ Components (Cấp 1 - Components).
+ */
+
+@use '../../app/styles/variables' as *;
+@use '../../app/styles/mixins' as *;
+
+.snakePage {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -11,15 +20,15 @@
   box-sizing: border-box;
 }
 
-/* Nút góc chuyển sang Dashboard */
-.corner-nav-container {
+// Nút góc chuyển sang Dashboard
+.cornerNavContainer {
   position: fixed;
   top: 20px;
   right: 20px;
   z-index: 100;
 }
 
-.corner-nav-btn {
+.cornerNavBtn {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -34,33 +43,33 @@
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
   transition: all 0.25s ease;
   backdrop-filter: blur(8px);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6);
+    filter: brightness(1.1);
+
+    .arrowIcon {
+      transform: translateX(3px);
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
-.corner-nav-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6);
-  filter: brightness(1.1);
-}
-
-.corner-nav-btn:active {
-  transform: translateY(0);
-}
-
-.nav-icon {
+.navIcon {
   font-size: 16px;
 }
 
-.arrow-icon {
+.arrowIcon {
   font-size: 14px;
   transition: transform 0.2s ease;
 }
 
-.corner-nav-btn:hover .arrow-icon {
-  transform: translateX(3px);
-}
-
-/* Khung trò chơi */
-.game-wrapper {
+// Khung trò chơi
+.gameWrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -68,12 +77,12 @@
   width: 100%;
 }
 
-.game-header {
+.gameHeader {
   text-align: center;
   margin-bottom: 16px;
 }
 
-.game-badge {
+.gameBadge {
   display: inline-block;
   font-size: 12px;
   text-transform: uppercase;
@@ -87,7 +96,7 @@
   margin-bottom: 8px;
 }
 
-.game-title {
+.gameTitle {
   margin: 0 0 6px;
   font-size: 32px;
   font-weight: 800;
@@ -97,13 +106,13 @@
   -webkit-text-fill-color: transparent;
 }
 
-.game-desc {
+.gameDesc {
   font-size: 13px;
   color: #94a3b8;
   margin: 0;
 }
 
-/* Bảng điểm */
+// Bảng điểm
 .scoreboard {
   display: flex;
   justify-content: space-between;
@@ -113,7 +122,7 @@
   gap: 12px;
 }
 
-.score-box {
+.scoreBox {
   flex: 1;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -124,29 +133,29 @@
   align-items: center;
 }
 
-.score-label {
+.scoreLabel {
   font-size: 12px;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.score-value {
+.scoreValue {
   font-size: 22px;
   font-weight: 700;
   font-family: monospace;
+
+  &.current {
+    color: #22c55e;
+  }
+
+  &.best {
+    color: #fbbf24;
+  }
 }
 
-.score-value.current {
-  color: #22c55e;
-}
-
-.score-value.best {
-  color: #fbbf24;
-}
-
-/* Khung Canvas */
-.canvas-container {
+// Khung Canvas
+.canvasContainer {
   position: relative;
   width: 400px;
   height: 400px;
@@ -154,27 +163,25 @@
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(34, 197, 94, 0.15);
   border: 2px solid #272a38;
-}
 
-@media (max-width: 440px) {
-  .canvas-container {
-    width: 320px;
-    height: 320px;
-  }
-
-  .snake-canvas {
+  @include mobile {
     width: 320px;
     height: 320px;
   }
 }
 
-.snake-canvas {
+.snakeCanvas {
   display: block;
   background: #11131a;
+
+  @include mobile {
+    width: 320px;
+    height: 320px;
+  }
 }
 
-/* Lớp phủ màn hình (Overlay) */
-.canvas-overlay {
+// Lớp phủ màn hình (Overlay)
+.canvasOverlay {
   position: absolute;
   inset: 0;
   background: rgba(17, 19, 26, 0.88);
@@ -187,6 +194,23 @@
   text-align: center;
   gap: 12px;
   animation: fadeIn 0.2s ease-out;
+
+  h2 {
+    font-size: 26px;
+    margin: 0;
+    color: #ffffff;
+  }
+
+  p {
+    color: #94a3b8;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  &.gameover .gameoverText {
+    color: #f43f5e;
+    text-shadow: 0 0 10px rgba(244, 63, 94, 0.6);
+  }
 }
 
 @keyframes fadeIn {
@@ -194,24 +218,7 @@
   to { opacity: 1; transform: scale(1); }
 }
 
-.canvas-overlay h2 {
-  font-size: 26px;
-  margin: 0;
-  color: #ffffff;
-}
-
-.canvas-overlay p {
-  color: #94a3b8;
-  font-size: 14px;
-  margin: 0;
-}
-
-.gameover .gameover-text {
-  color: #f43f5e;
-  text-shadow: 0 0 10px rgba(244, 63, 94, 0.6);
-}
-
-.game-btn {
+.gameBtn {
   padding: 10px 24px;
   font-size: 15px;
   font-weight: 700;
@@ -221,28 +228,28 @@
   transition: all 0.2s ease;
 }
 
-.btn-start, .btn-resume {
+.btnStart, .btnResume {
   background: #22c55e;
   color: #0f172a;
+
+  &:hover {
+    background: #16a34a;
+    transform: scale(1.05);
+  }
 }
 
-.btn-start:hover, .btn-resume:hover {
-  background: #16a34a;
-  transform: scale(1.05);
-}
-
-.btn-restart {
+.btnRestart {
   background: #f43f5e;
   color: #ffffff;
+
+  &:hover {
+    background: #e11d48;
+    transform: scale(1.05);
+  }
 }
 
-.btn-restart:hover {
-  background: #e11d48;
-  transform: scale(1.05);
-}
-
-/* Game Actions Buttons */
-.game-actions {
+// Game Actions Buttons
+.gameActions {
   display: flex;
   gap: 12px;
   margin-top: 14px;
@@ -250,7 +257,7 @@
   max-width: 400px;
 }
 
-.action-btn {
+.actionBtn {
   flex: 1;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -260,15 +267,15 @@
   font-size: 13px;
   cursor: pointer;
   transition: background 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+  }
 }
 
-.action-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-}
-
-/* Bàn phím ảo D-pad */
-.virtual-dpad {
+// Bàn phím ảo D-pad
+.virtualDpad {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -276,12 +283,12 @@
   margin-top: 14px;
 }
 
-.dpad-row {
+.dpadRow {
   display: flex;
   gap: 8px;
 }
 
-.dpad-btn {
+.dpadBtn {
   width: 52px;
   height: 44px;
   background: rgba(255, 255, 255, 0.08);
@@ -295,38 +302,39 @@
   justify-content: center;
   transition: all 0.15s ease;
   user-select: none;
+
+  &:hover, &:active {
+    background: rgba(34, 197, 94, 0.25);
+    border-color: #22c55e;
+    color: #22c55e;
+    transform: scale(0.95);
+  }
 }
 
-.dpad-btn:hover, .dpad-btn:active {
-  background: rgba(34, 197, 94, 0.25);
-  border-color: #22c55e;
-  color: #22c55e;
-  transform: scale(0.95);
-}
-
-.game-footer {
+.gameFooter {
   margin-top: 18px;
   text-align: center;
   max-width: 380px;
-}
 
-.game-footer p {
-  font-size: 13px;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.5;
-}
+  p {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.5;
+  }
 
-.game-footer strong {
-  color: #a855f7;
+  strong {
+    color: #a855f7;
+  }
 }
 
 @media (max-width: 600px) {
-  .corner-nav-container {
+  .cornerNavContainer {
     top: 12px;
     right: 12px;
   }
-  .corner-nav-btn {
+
+  .cornerNavBtn {
     padding: 8px 14px;
     font-size: 13px;
   }

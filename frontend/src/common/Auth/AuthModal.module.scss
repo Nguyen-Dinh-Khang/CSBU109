@@ -1,0 +1,197 @@
+﻿/**
+ * TÊN FILE: AuthModal.module.scss
+ * CÔNG DỤNG: Định dạng SCSS Module cho hộp thoại (modal) Đăng nhập và Đăng ký người dùng.
+ * PHẠM VI DÙNG: Phân hệ Common (Màn hình/tính năng dùng chung).
+ */
+
+@use '../../app/styles/variables' as *;
+@use '../../app/styles/mixins' as *;
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  @include flex-center;
+  padding: 1rem;
+}
+
+.modal {
+  @include card-base;
+  width: 100%;
+  max-width: 440px;
+  background-color: $color-surface;
+  padding: 2rem;
+  position: relative;
+  box-shadow: $shadow-lg;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.closeBtn {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: none;
+  border: none;
+  color: $color-text-dim;
+  font-size: 1.25rem;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  @include flex-center;
+  transition: all $transition-fast;
+
+  &:hover {
+    color: $color-text-main;
+    background-color: $color-surface-hover;
+  }
+}
+
+.tabs {
+  display: flex;
+  background-color: $color-bg;
+  border-radius: $radius-md;
+  padding: 0.25rem;
+  margin-bottom: 1.75rem;
+  border: 1px solid $color-border;
+}
+
+.tabBtn {
+  flex: 1;
+  padding: 0.6rem 0;
+  background: none;
+  border: none;
+  color: $color-text-muted;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &.active {
+    background-color: $color-surface-card;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: $shadow-sm;
+  }
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: $color-text-main;
+  margin-bottom: 0.35rem;
+}
+
+.subtitle {
+  font-size: 0.88rem;
+  color: $color-text-muted;
+  margin-bottom: 1.5rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: $color-text-muted;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: $color-bg;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  color: $color-text-main;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color $transition-fast, box-shadow $transition-fast;
+
+  &:focus {
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px $color-primary-glow;
+  }
+
+  &::placeholder {
+    color: $color-text-dim;
+  }
+}
+
+.errorAlert {
+  background-color: $color-danger-bg;
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 0.75rem 1rem;
+  border-radius: $radius-md;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.successAlert {
+  background-color: $color-success-bg;
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 0.75rem 1rem;
+  border-radius: $radius-md;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.btnSubmit {
+  @include button-base;
+  background-color: $color-primary;
+  color: #ffffff;
+  padding: 0.8rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+
+  &:hover {
+    background-color: $color-primary-hover;
+    box-shadow: $shadow-glow;
+  }
+}
+
+.footerText {
+  text-align: center;
+  font-size: 0.85rem;
+  color: $color-text-muted;
+  margin-top: 1.25rem;
+
+  button {
+    background: none;
+    border: none;
+    color: $color-primary;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    margin-left: 0.25rem;
+
+    &:hover {
+      color: $color-primary-hover;
+    }
+  }
+}

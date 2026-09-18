@@ -1,0 +1,75 @@
+﻿/**
+ * TÊN FILE: _mixins.scss
+ * CÔNG DỤNG: Các mixin tái sử dụng cho layout flexbox, responsive media queries và định dạng phần tử.
+ * PHẠM VI DÙNG: Toàn hệ thống Frontend.
+ */
+
+@use 'variables' as *;
+
+// Căn giữa với Flexbox
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Căn cách đều hai đầu với Flexbox
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Định dạng Card chuẩn
+@mixin card-base {
+  background-color: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-md;
+  transition: border-color $transition-normal, transform $transition-normal;
+
+  &:hover {
+    border-color: $color-border-light;
+  }
+}
+
+// Nút bấm cơ bản
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.65rem 1.25rem;
+  border-radius: $radius-md;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all $transition-fast;
+  text-decoration: none;
+  outline: none;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Responsive Breakpoints
+@mixin mobile {
+  @media (max-width: #{$bp-mobile}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (max-width: #{$bp-tablet}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$bp-desktop}) {
+    @content;
+  }
+}
