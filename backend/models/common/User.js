@@ -1,6 +1,6 @@
-﻿/**
+/**
  * TÊN FILE: User.js
- * CÔNG DỤNG: Định nghĩa Schema và Model người dùng với trường userId dạng số nguyên tự tăng, email, username, password.
+ * CÔNG DỤNG: Định nghĩa Schema và Model người dùng gồm thông tin xác thực và các subdocuments lồng nhau (works, goals, dates) theo kiến trúc MongoDB Embedded.
  * PHẠM VI DÙNG: Toàn hệ thống (Common).
  */
 
@@ -8,6 +8,114 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { getNextSequenceValue } from './Counter.js';
 
+/**
+ * Schema cho mục tiêu con (Goal Subdocument) thuộc một đầu việc (Work).
+ */
+const goalSchema = new mongoose.Schema(
+  {
+    goal_name: {
+      type: String,
+      required: [true, 'Tên mục tiêu là bắt buộc'],
+      trim: true,
+    },
+    goal_end_date: {
+      type: Date,
+      required: [true, 'Hạn chót mục tiêu là bắt buộc'],
+    },
+    goal_color: {
+      type: String,
+      default: '#EF4444',
+      trim: true,
+    },
+    goal_range: {
+      type: Number,
+      default: 1,
+      min: 1,
+      max: 10,
+    },
+    goal_description: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    goal_check: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+/**
+ * Schema cho đầu việc lớn (Work Subdocument) thuộc về người dùng.
+ */
+const workSchema = new mongoose.Schema(
+  {
+    work_name: {
+      type: String,
+      required: [true, 'Tên đầu việc là bắt buộc'],
+      trim: true,
+    },
+    work_start_date: {
+      type: Date,
+      required: [true, 'Ngày bắt đầu là bắt buộc'],
+    },
+    work_end_date: {
+      type: Date,
+      required: [true, 'Ngày kết thúc là bắt buộc'],
+    },
+    work_color: {
+      type: String,
+      default: '#10B981',
+      trim: true,
+    },
+    work_description: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    goals_count: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    goals: [goalSchema],
+  },
+  {
+    timestamps: true,
+  }
+);
+
+/**
+ * Schema cho ngày đặc biệt / sự kiện lịch trình (Date Subdocument) của người dùng.
+ */
+const dateSchema = new mongoose.Schema(
+  {
+    date_name: {
+      type: String,
+      required: [true, 'Tên sự kiện/ngày đặc biệt là bắt buộc'],
+      trim: true,
+    },
+    date_date: {
+      type: Date,
+      required: [true, 'Thời gian sự kiện là bắt buộc'],
+    },
+    date_color: {
+      type: String,
+      default: '#3B82F6',
+      trim: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+/**
+ * Schema chính cho tài khoản người dùng (User Document) chứa các mảng nhúng works và dates.
+ */
 const userSchema = new mongoose.Schema(
   {
     userId: {
@@ -46,6 +154,8 @@ const userSchema = new mongoose.Schema(
       enum: ['customer', 'admin'],
       default: 'customer',
     },
+    works: [workSchema],
+    dates: [dateSchema],
   },
   {
     timestamps: true,

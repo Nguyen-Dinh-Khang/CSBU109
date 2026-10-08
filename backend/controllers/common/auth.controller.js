@@ -70,23 +70,25 @@ export async function register(req, res) {
  */
 export async function login(req, res) {
   try {
-    const { identifier, password } = req.body;
+    const rawIdentifier = req.body.username || req.body.email || req.body.identifier;
+    const { password } = req.body;
 
-    if (!identifier || !password) {
+    if (!rawIdentifier || !password) {
       return res.status(400).json({
         success: false,
         message: 'Vui lòng nhập email/username và mật khẩu.',
       });
     }
 
-    const result = await authService.login({ identifier, password });
+    const result = await authService.login({ identifier: rawIdentifier, password });
     setRefreshTokenCookie(res, req, result.refreshToken);
 
     return res.status(200).json({
       success: true,
       message: 'Đăng nhập thành công!',
-      user: result.user,
+      token: result.accessToken,
       accessToken: result.accessToken,
+      user: result.user,
     });
   } catch (error) {
     return res.status(error.statusCode || 401).json({
