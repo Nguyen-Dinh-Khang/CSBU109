@@ -26,7 +26,7 @@ async function findUserById(userId) {
  * Function 1: Tạo đầu việc mới gán cho người dùng hiện tại.
  * @param {string|number} userId - ID người dùng
  * @param {object} workData - Dữ liệu đầu việc gồm work_name, work_start_date, work_end_date, work_color, work_description
- * @returns {Promise<object>} - Object đầu việc vừa được tạo
+ * @returns {Promise<object>} - Object đầu việc vừa được tạo (tóm tắt)
  */
 export async function createWork(userId, workData) {
   const user = await findUserById(userId);
@@ -46,13 +46,19 @@ export async function createWork(userId, workData) {
   user.works.push(newWork);
   await user.save();
 
-  return user.works[user.works.length - 1];
+  const created = user.works[user.works.length - 1].toObject();
+  delete created.goals;
+  created.completed_goals_count = 0;
+  created.progress_percentage = 0;
+  created.is_expired = new Date(created.work_end_date) < new Date();
+
+  return created;
 }
 
 /**
- * Function 5: Lấy toàn bộ danh sách đầu việc của người dùng kèm cờ trạng thái hết hạn.
+ * Function 5: Lấy toàn bộ danh sách đầu việc vắn tắt của người dùng kèm tiến độ, số lượng goal và cờ hết hạn (không kèm danh sách goals chi tiết).
  * @param {string|number} userId - ID người dùng
- * @returns {Promise<Array>} - Danh sách các đầu việc
+ * @returns {Promise<Array>} - Danh sách các đầu việc vắn tắt
  */
 export async function getWorks(userId) {
   const user = await findUserById(userId);
@@ -60,8 +66,21 @@ export async function getWorks(userId) {
   const now = new Date();
   return user.works.map((work) => {
     const workObj = work.toObject();
-    workObj.is_expired = new Date(work.work_end_date) < now;
-    return workObj;
+    const goalsList = Array.isArray(workObj.goals) ? workObj.goals : [];
+    const totalGoals = goalsList.length;
+    const completedGoals = goalsList.filter((g) => g.goal_check).length;
+    const progressPercentage =
+      totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
+
+    delete workObj.goals;
+
+    return {
+      ...workObj,
+      goals_count: totalGoals,
+      completed_goals_count: completedGoals,
+      progress_percentage: progressPercentage,
+      is_expired: new Date(work.work_end_date) < now,
+    };
   });
 }
 
@@ -101,7 +120,20 @@ export async function updateWork(userId, workId, updateData) {
   });
 
   await user.save();
-  return work;
+
+  const updatedObj = work.toObject();
+  const goalsList = Array.isArray(updatedObj.goals) ? updatedObj.goals : [];
+  const totalGoals = goalsList.length;
+  const completedGoals = goalsList.filter((g) => g.goal_check).length;
+  delete updatedObj.goals;
+
+  return {
+    ...updatedObj,
+    goals_count: totalGoals,
+    completed_goals_count: completedGoals,
+    progress_percentage: totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0,
+    is_expired: new Date(updatedObj.work_end_date) < new Date(),
+  };
 }
 
 /**

@@ -1,618 +1,466 @@
-﻿/**
+/**
  * TÊN FILE: Dashboard.jsx
- * CÔNG DỤNG: Giao diện chính theo dõi lịch trình, môn học, dự án chia nhỏ theo giai đoạn, phân biệt chế độ Khách (Demo) và Thành viên.
+ * CÔNG DỤNG: Giao diện thứ nhất (Mặc định) - Bảng điều khiển tổng quan hiển thị 5 mục tiêu sắp tới hạn và 3 ngày đặc biệt sắp diễn ra.
  * PHẠM VI DÙNG: Phân hệ Customer.
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../app/providers/AuthContext.jsx';
-import {
-  fetchScheduleItems,
-  createScheduleItem,
-  toggleScheduleStage,
-  deleteScheduleItem,
-} from '../../shared/services/schedule.service.js';
+import { fetchDashboard, toggleCheckGoal } from '../../shared/services/work.service.js';
+import { formatDisplayDate, getDeadlineBadgeInfo } from '../../shared/utils/dateFormat.js';
 import styles from './Dashboard.module.scss';
 
-// Dữ liệu mẫu tương tác dành riêng cho chế độ Khách xem trước (Guest Demo)
-const INITIAL_DEMO_ITEMS = [
-  {
-    _id: 'demo-1',
-    title: 'Môn học: Lập trình Web nâng cao',
-    category: 'Môn học',
-    description: 'Học phần đồ án ứng dụng web đa người dùng với React và Express.',
-    stages: [
-      { _id: 'd1-s1', title: 'Thiết kế giao diện mẫu trên Figma', isCompleted: true },
-      { _id: 'd1-s2', title: 'Xây dựng Backend Auth với JWT và Cookie', isCompleted: true },
-      { _id: 'd1-s3', title: 'Tích hợp SCSS Modules và Dashboard cá nhân', isCompleted: false },
-      { _id: 'd1-s4', title: 'Kiểm thử toàn diện và báo cáo đồ án', isCompleted: false },
-    ],
-    progressPercentage: 50,
-  },
-  {
-    _id: 'demo-2',
-    title: 'Dự án: Trợ lý học tập thông minh AI',
-    category: 'Dự án',
-    description: 'Nghiên cứu mô hình ngôn ngữ lớn để tóm tắt bài giảng môn học.',
-    stages: [
-      { _id: 'd2-s1', title: 'Thu thập tài liệu và giáo trình tham khảo', isCompleted: true },
-      { _id: 'd2-s2', title: 'Tích hợp API Gemini tạo câu hỏi ôn tập', isCompleted: false },
-      { _id: 'd2-s3', title: 'Triển khai thử nghiệm cho nhóm sinh viên', isCompleted: false },
-    ],
-    progressPercentage: 33,
-  },
-];
+const DEMO_OVERVIEW = {
+  upcoming_goals: [
+    {
+      goal_id: 'demo-g1',
+      goal_name: 'Hoàn thiện báo cáo phân tích yêu cầu CSBU109',
+      goal_end_date: new Date(Date.now() + 86400000).toISOString(),
+      goal_color: '#EF4444',
+      goal_range: 4,
+      work_id: 'demo-w1',
+      work_name: 'Đồ án Công nghệ Phần mềm',
+    },
+    {
+      goal_id: 'demo-g2',
+      goal_name: 'Thiết kế giao diện 3 phân trang React + SCSS',
+      goal_end_date: new Date(Date.now() + 3 * 86400000).toISOString(),
+      goal_color: '#3B82F6',
+      goal_range: 3,
+      work_id: 'demo-w1',
+      work_name: 'Đồ án Công nghệ Phần mềm',
+    },
+    {
+      goal_id: 'demo-g3',
+      goal_name: 'Ôn tập chương 4: Truy vấn MongoDB Embedded',
+      goal_end_date: new Date(Date.now() + 5 * 86400000).toISOString(),
+      goal_color: '#10B981',
+      goal_range: 2,
+      work_id: 'demo-w2',
+      work_name: 'Cơ sở dữ liệu nâng cao',
+    },
+  ],
+  upcoming_dates: [
+    {
+      date_id: 'demo-d1',
+      date_name: 'Nộp báo cáo tiến độ giữa kỳ',
+      date_date: new Date(Date.now() + 2 * 86400000).toISOString(),
+      date_color: '#F59E0B',
+    },
+    {
+      date_id: 'demo-d2',
+      date_name: 'Thuyết trình nhóm trên lớp',
+      date_date: new Date(Date.now() + 7 * 86400000).toISOString(),
+      date_color: '#8B5CF6',
+    },
+  ],
+};
 
 /**
- * Component Dashboard chính hiển thị lịch trình và các giai đoạn đầu việc.
- * @param {object} props - Thuộc tính component gồm hàm mở modal xác thực onOpenAuth
+ * Component Dashboard tổng quan hiển thị bức tranh chung về các hạn chót và ngày kỷ niệm sắp tới.
+ * @param {object} props - Gồm onOpenAuth, onNavigateTab, onSelectWorkFromDashboard
  */
-export function Dashboard({ onOpenAuth }) {
+export function Dashboard({ onOpenAuth, onNavigateTab, onSelectWorkFromDashboard }) {
   const { user, isAuthenticated } = useAuth();
-
-  // State dành cho khách xem demo
-  const [demoItems, setDemoItems] = useState(INITIAL_DEMO_ITEMS);
-
-  // State dành cho thành viên đã đăng nhập
-  const [realItems, setRealItems] = useState([]);
-  const [isFetching, setIsFetching] = useState(false);
-  const [filterCategory, setFilterCategory] = useState('Tất cả');
-
-  // State mở form thêm mới
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newCategory, setNewCategory] = useState('Môn học');
-  const [newDesc, setNewDesc] = useState('');
-  const [newStages, setNewStages] = useState([]);
-  const [stageInputText, setStageInputText] = useState('');
-  const [formError, setFormError] = useState('');
+  const [overview, setOverview] = useState({ upcoming_goals: [], upcoming_dates: [] });
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   /**
-   * Tải danh sách lịch trình thật của người dùng từ API.
+   * Tải dữ liệu tổng quan từ API /api/dashboard.
    */
-  const loadUserSchedules = useCallback(async () => {
+  const loadDashboardData = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
-      setIsFetching(true);
-      const items = await fetchScheduleItems();
-      setRealItems(items);
+      setIsLoading(true);
+      setErrorMsg('');
+      const data = await fetchDashboard();
+      setOverview({
+        upcoming_goals: data?.upcoming_goals || [],
+        upcoming_dates: data?.upcoming_dates || [],
+      });
     } catch {
-      setRealItems([]);
+      setErrorMsg('Không thể tải dữ liệu tổng quan lúc này.');
     } finally {
-      setIsFetching(false);
+      setIsLoading(false);
     }
   }, [isAuthenticated]);
 
   useEffect(() => {
-    loadUserSchedules();
-  }, [loadUserSchedules]);
+    if (!isAuthenticated) return;
+    let isCancelled = false;
 
-  /**
-   * Xử lý chuyển đổi trạng thái hoàn thành giai đoạn trên bản Demo của khách.
-   * @param {string} itemId - ID mục demo
-   * @param {string} stageId - ID giai đoạn nhỏ
-   */
-  const handleToggleDemoStage = (itemId, stageId) => {
-    setDemoItems((prev) =>
-      prev.map((item) => {
-        if (item._id !== itemId) return item;
-        const updatedStages = item.stages.map((stage) => {
-          if (stage._id === stageId) {
-            return { ...stage, isCompleted: !stage.isCompleted };
-          }
-          return stage;
-        });
-        const completedCount = updatedStages.filter((s) => s.isCompleted).length;
-        const progressPercentage = Math.round((completedCount / updatedStages.length) * 100);
-        return {
-          ...item,
-          stages: updatedStages,
-          progressPercentage,
-        };
+    fetchDashboard()
+      .then((data) => {
+        if (!isCancelled) {
+          setOverview({
+            upcoming_goals: data?.upcoming_goals || [],
+            upcoming_dates: data?.upcoming_dates || [],
+          });
+        }
       })
-    );
-  };
-
-  /**
-   * Xử lý chuyển đổi trạng thái hoàn thành giai đoạn thật của thành viên qua API.
-   * @param {string} itemId - ID môn học/dự án
-   * @param {string} stageId - ID giai đoạn nhỏ
-   * @param {boolean} currentStatus - Trạng thái hiện tại
-   */
-  const handleToggleRealStage = async (itemId, stageId, currentStatus) => {
-    try {
-      const updated = await toggleScheduleStage(itemId, stageId, !currentStatus);
-      if (updated) {
-        setRealItems((prev) =>
-          prev.map((item) => (item._id === itemId ? updated : item))
-        );
-      }
-    } catch (err) {
-      console.error('Lỗi khi cập nhật giai đoạn:', err);
-    }
-  };
-
-  /**
-   * Thêm một giai đoạn nhỏ vào danh sách tạm khi tạo mới.
-   */
-  const handleAddStageToForm = () => {
-    if (!stageInputText.trim()) return;
-    setNewStages((prev) => [...prev, { title: stageInputText.trim(), isCompleted: false }]);
-    setStageInputText('');
-  };
-
-  /**
-   * Xóa một giai đoạn nhỏ khỏi danh sách tạm.
-   * @param {number} index - Vị trí giai đoạn cần xóa
-   */
-  const handleRemoveStageFromForm = (index) => {
-    setNewStages((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  /**
-   * Gửi yêu cầu lưu môn học / dự án mới qua Service.
-   * @param {object} e - Form event
-   */
-  const handleSaveSchedule = async (e) => {
-    e.preventDefault();
-    setFormError('');
-
-    if (!newTitle.trim()) {
-      setFormError('Vui lòng nhập tên môn học hoặc dự án.');
-      return;
-    }
-
-    if (newStages.length === 0) {
-      setFormError('Hãy thêm ít nhất 1 giai đoạn nhỏ để theo dõi tiến độ.');
-      return;
-    }
-
-    try {
-      const created = await createScheduleItem({
-        title: newTitle.trim(),
-        category: newCategory,
-        description: newDesc.trim(),
-        stages: newStages,
+      .catch(() => {
+        if (!isCancelled) {
+          setErrorMsg('Không thể tải dữ liệu tổng quan lúc này.');
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       });
 
-      if (created) {
-        setRealItems((prev) => [created, ...prev]);
-        setNewTitle('');
-        setNewDesc('');
-        setNewStages([]);
-        setShowAddForm(false);
-      }
-    } catch (err) {
-      setFormError(err.response?.data?.message || 'Không thể tạo môn học / dự án.');
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated]);
+
+  /**
+   * Đánh dấu hoàn thành nhanh một mục tiêu ngay trên Dashboard và tải lại danh sách.
+   * @param {string} workId - ID của đầu việc chứa mục tiêu
+   * @param {string} goalId - ID của mục tiêu cần đánh dấu
+   */
+  const handleQuickCompleteGoal = async (workId, goalId) => {
+    try {
+      await toggleCheckGoal(workId, goalId);
+      await loadDashboardData();
+    } catch {
+      setErrorMsg('Không thể cập nhật trạng thái mục tiêu.');
     }
   };
 
   /**
-   * Xử lý xóa một mục môn học / dự án.
-   * @param {string} itemId - ID mục cần xóa
+   * Chuyển sang trang Work và mở ngay đầu việc chứa mục tiêu được chọn.
+   * @param {string} workId - ID đầu việc cần xem
    */
-  const handleDeleteItem = async (itemId) => {
-    if (!window.confirm('Bạn có chắc muốn xóa môn học / dự án này?')) return;
-    try {
-      await deleteScheduleItem(itemId);
-      setRealItems((prev) => prev.filter((it) => it._id !== itemId));
-    } catch (err) {
-      console.error('Lỗi khi xóa:', err);
+  const handleJumpToWork = (workId) => {
+    if (onSelectWorkFromDashboard) {
+      onSelectWorkFromDashboard(workId);
+    } else if (onNavigateTab) {
+      onNavigateTab('works');
     }
   };
 
-  // Tính toán thống kê dữ liệu thành viên
-  const stats = useMemo(() => {
-    const totalItems = realItems.length;
-    let totalStages = 0;
-    let completedStages = 0;
-
-    realItems.forEach((item) => {
-      if (item.stages) {
-        totalStages += item.stages.length;
-        completedStages += item.stages.filter((s) => s.isCompleted).length;
-      }
-    });
-
-    const averageProgress =
-      totalItems > 0
-        ? Math.round(
-            realItems.reduce((acc, it) => acc + (it.progressPercentage || 0), 0) / totalItems
-          )
-        : 0;
-
-    return { totalItems, totalStages, completedStages, averageProgress };
-  }, [realItems]);
-
-  // Lọc danh sách theo danh mục
-  const filteredItems = useMemo(() => {
-    if (filterCategory === 'Tất cả') return realItems;
-    return realItems.filter((it) => it.category === filterCategory);
-  }, [realItems, filterCategory]);
-
   // ==========================================
-  // RENDER: GIAO DIỆN CHƯA ĐĂNG NHẬP (GUEST VIEW)
+  // RENDER CHO KHÁCH CHƯA ĐĂNG NHẬP
   // ==========================================
   if (!isAuthenticated) {
     return (
       <div className={styles.dashboard}>
-        <section className={styles.heroSection}>
-          <div className={styles.badgePill}>
-            <span>🚀 Quản lý Lịch trình & Đầu việc Thông minh</span>
-          </div>
+        <section className={styles.heroBanner}>
+          <div className={styles.heroBadge}>✨ Không gian quản lý gọn gàng - 3 Phân trang</div>
           <h1 className={styles.heroTitle}>
-            Theo dõi tiến độ học tập và dự án <span>từng bước một</span>
+            Kiểm soát mọi <span>Đầu việc, Mục tiêu & Lịch trình</span> tại một nơi
           </h1>
-          <p className={styles.heroSubtitle}>
-            Không còn bối rối trước những đồ án lớn hay môn học phức tạp. Hãy chia nhỏ mọi mục tiêu
-            thành các giai đoạn rõ ràng và theo dõi tỷ lệ hoàn thành trực quan ngay hôm nay!
+          <p className={styles.heroDesc}>
+            Hệ thống được chia thành 3 giao diện rõ ràng: <strong>Dashboard</strong> tổng hợp hạn chót,{' '}
+            <strong>Đầu việc (Work)</strong> quản lý tiến độ vắn tắt và <strong>Lịch ngày nhớ</strong>{' '}
+            theo dõi sự kiện quan trọng.
           </p>
-
-          <div className={styles.heroCta}>
+          <div className={styles.heroActions}>
             <button
               type="button"
               className={styles.btnPrimary}
-              onClick={() => onOpenAuth('register')}
+              onClick={() => onOpenAuth('login')}
             >
-              Bắt đầu miễn phí (Đăng ký)
+              Đăng nhập ngay
             </button>
             <button
               type="button"
               className={styles.btnSecondary}
-              onClick={() => onOpenAuth('login')}
+              onClick={() => onOpenAuth('register')}
             >
-              Đăng nhập tài khoản
+              Tạo tài khoản mới
             </button>
           </div>
-
-          <div className={styles.featuresGrid}>
-            <div className={styles.featureCard}>
-              <div className={styles.featureIcon}>🎯</div>
-              <h3 className={styles.featureTitle}>Chia nhỏ giai đoạn (Milestones)</h3>
-              <p className={styles.featureDesc}>
-                Phân rã môn học hoặc dự án thành từng mốc công việc nhỏ: Nghiên cứu, Báo cáo giữa kỳ,
-                Đóng gói đồ án.
-              </p>
-            </div>
-            <div className={styles.featureCard}>
-              <div className={styles.featureIcon}>📊</div>
-              <h3 className={styles.featureTitle}>Thước đo % trực quan</h3>
-              <p className={styles.featureDesc}>
-                Tự động tính toán phần trăm tiến độ ngay khi bạn đánh dấu hoàn thành từng giai đoạn.
-              </p>
-            </div>
-            <div className={styles.featureCard}>
-              <div className={styles.featureIcon}>🔒</div>
-              <h3 className={styles.featureTitle}>Bảo mật Cookie & Refresh Token</h3>
-              <p className={styles.featureDesc}>
-                Tài khoản lưu trữ an toàn, phiên đăng nhập tự động duy trì mượt mà và không lo bị đánh cắp thông tin.
-              </p>
-            </div>
-          </div>
         </section>
 
-        {/* BẢNG DEMO TƯƠNG TÁC CHO KHÁCH */}
-        <section className={styles.demoContainer}>
-          <div className={styles.demoHeader}>
-            <span className={styles.demoTag}>Chế độ xem trước tương tác</span>
-            <h2 className={styles.demoTitle}>Trải nghiệm ngay bản Demo bên dưới</h2>
-            <p className={styles.demoSub}>
-              Bạn có thể click vào các ô checkbox dưới đây để thấy thanh % tiến độ thay đổi ngay lập tức!
-            </p>
+        <div className={styles.navPreviewGrid}>
+          <div className={styles.previewCard} onClick={() => onNavigateTab('dashboard')}>
+            <div className={styles.previewIcon}>📊</div>
+            <h3>1. Giao diện Dashboard</h3>
+            <p>Tự động lọc ra 5 mục tiêu gần hạn nhất chưa xong và 3 sự kiện sắp diễn ra.</p>
           </div>
+          <div className={styles.previewCard} onClick={() => onNavigateTab('works')}>
+            <div className={styles.previewIcon}>📁</div>
+            <h3>2. Giao diện Đầu việc (Work)</h3>
+            <p>Hiển thị vắn tắt tên, thanh tiến độ và số lượng Goal. Bấm vào để tải chi tiết các Goal.</p>
+          </div>
+          <div className={styles.previewCard} onClick={() => onNavigateTab('calendar')}>
+            <div className={styles.previewIcon}>📅</div>
+            <h3>3. Giao diện Lịch ngày nhớ</h3>
+            <p>Hiển thị lịch theo tháng của những ngày đặc biệt đã lưu kèm màu sắc trực quan.</p>
+          </div>
+        </div>
 
-          <div className={styles.itemsGrid}>
-            {demoItems.map((item) => (
-              <div key={item._id} className={styles.itemCard}>
-                <div className={styles.itemCardHeader}>
-                  <span
-                    className={`${styles.itemCategory} ${
-                      item.category === 'Dự án' ? styles.project : ''
-                    }`}
-                  >
-                    {item.category}
-                  </span>
-                  <span className={styles.demoTag}>Demo</span>
-                </div>
-
-                <h3 className={styles.itemTitle}>{item.title}</h3>
-                <p className={styles.itemDesc}>{item.description}</p>
-
-                <div className={styles.progressContainer}>
-                  <div className={styles.progressLabelRow}>
-                    <span>Tiến độ hoàn thành</span>
-                    <span
-                      className={`${styles.progressPercentage} ${
-                        item.progressPercentage === 100 ? styles.completed : ''
-                      }`}
-                    >
-                      {item.progressPercentage}%
-                    </span>
-                  </div>
-                  <div className={styles.progressBarBg}>
-                    <div
-                      className={`${styles.progressBarFill} ${
-                        item.progressPercentage === 100 ? styles.completed : ''
-                      }`}
-                      style={{ width: `${item.progressPercentage}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className={styles.stagesHeader}>Các giai đoạn cần hoàn thành:</div>
-                <div className={styles.stageList}>
-                  {item.stages.map((stage) => (
-                    <div
-                      key={stage._id}
-                      className={`${styles.stageItem} ${stage.isCompleted ? styles.completed : ''}`}
-                      onClick={() => handleToggleDemoStage(item._id, stage._id)}
-                    >
-                      <div
-                        className={`${styles.checkbox} ${stage.isCompleted ? styles.checked : ''}`}
-                      >
-                        {stage.isCompleted ? '✓' : ''}
-                      </div>
-                      <span className={styles.stageTitle}>{stage.title}</span>
-                    </div>
-                  ))}
-                </div>
+        <div className={styles.twoColGrid}>
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2 className={styles.panelTitle}>🎯 Mục tiêu sắp tới hạn (Xem trước)</h2>
+                <p className={styles.panelSub}>Tối đa 5 mục tiêu gần nhất chưa hoàn thành</p>
               </div>
-            ))}
-          </div>
-        </section>
+              <span className={styles.demoPill}>Chế độ mẫu</span>
+            </div>
+            <div className={styles.listContainer}>
+              {DEMO_OVERVIEW.upcoming_goals.map((goal) => {
+                const badge = getDeadlineBadgeInfo(goal.goal_end_date);
+                return (
+                  <div key={goal.goal_id} className={styles.goalRow}>
+                    <span
+                      className={styles.colorBar}
+                      style={{ backgroundColor: goal.goal_color }}
+                    />
+                    <div className={styles.goalMain}>
+                      <div className={styles.goalTitle}>{goal.goal_name}</div>
+                      <div className={styles.goalMeta}>
+                        <span className={styles.workTag}>📁 {goal.work_name}</span>
+                        <span>• Độ ưu tiên: Mức {goal.goal_range}</span>
+                      </div>
+                    </div>
+                    <div className={styles.goalRight}>
+                      <span className={`${styles.deadlineBadge} ${styles[badge.status]}`}>
+                        {badge.label}
+                      </span>
+                      <span className={styles.dateText}>
+                        {formatDisplayDate(goal.goal_end_date)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2 className={styles.panelTitle}>📅 Ngày đặc biệt sắp tới (Xem trước)</h2>
+                <p className={styles.panelSub}>3 mốc sự kiện gần nhất trong lịch</p>
+              </div>
+              <span className={styles.demoPill}>Chế độ mẫu</span>
+            </div>
+            <div className={styles.listContainer}>
+              {DEMO_OVERVIEW.upcoming_dates.map((item) => {
+                const badge = getDeadlineBadgeInfo(item.date_date);
+                return (
+                  <div key={item.date_id} className={styles.dateRow}>
+                    <div
+                      className={styles.dateBadgeBox}
+                      style={{ borderColor: item.date_color }}
+                    >
+                      <span
+                        className={styles.dateDot}
+                        style={{ backgroundColor: item.date_color }}
+                      />
+                      <span>{formatDisplayDate(item.date_date)}</span>
+                    </div>
+                    <div className={styles.dateInfo}>
+                      <div className={styles.dateName}>{item.date_name}</div>
+                      <span className={`${styles.deadlineBadge} ${styles[badge.status]}`}>
+                        {badge.label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </div>
       </div>
     );
   }
 
   // ==========================================
-  // RENDER: GIAO DIỆN ĐÃ ĐĂNG NHẬP (MEMBER VIEW)
+  // RENDER CHO THÀNH VIÊN ĐÃ ĐĂNG NHẬP
   // ==========================================
+  const { upcoming_goals: upcomingGoals, upcoming_dates: upcomingDates } = overview;
+
   return (
     <div className={styles.dashboard}>
-      <div className={styles.welcomeBanner}>
+      <div className={styles.welcomeBar}>
         <div>
           <h1 className={styles.welcomeTitle}>
-            Xin chào, <span>{user?.username}</span>!
-            <span className={styles.welcomeUserId}>Mã ID: #{user?.userId}</span>
+            Bảng điều khiển của <span>{user?.username}</span>
           </h1>
-          <p className={styles.welcomeText}>
-            Dưới đây là bảng theo dõi lịch trình môn học và các dự án cá nhân của bạn.
+          <p className={styles.welcomeSub}>
+            Tổng hợp nhanh các mục tiêu cần ưu tiên xử lý và các sự kiện sắp diễn ra.
           </p>
         </div>
-        <button
-          type="button"
-          className={styles.btnAdd}
-          onClick={() => setShowAddForm((prev) => !prev)}
-        >
-          {showAddForm ? '✕ Đóng biểu mẫu' : '+ Thêm Môn học / Dự án mới'}
-        </button>
-      </div>
-
-      {/* THẺ THỐNG KÊ */}
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>📚</div>
-          <div className={styles.statInfo}>
-            <span className={styles.statValue}>{stats.totalItems}</span>
-            <span className={styles.statLabel}>Môn học & Dự án</span>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>✅</div>
-          <div className={styles.statInfo}>
-            <span className={styles.statValue}>
-              {stats.completedStages}/{stats.totalStages}
-            </span>
-            <span className={styles.statLabel}>Giai đoạn đã hoàn thành</span>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>📈</div>
-          <div className={styles.statInfo}>
-            <span className={styles.statValue}>{stats.averageProgress}%</span>
-            <span className={styles.statLabel}>Tiến độ trung bình</span>
-          </div>
+        <div className={styles.quickActionGroup}>
+          <button
+            type="button"
+            className={styles.btnQuickWork}
+            onClick={() => onNavigateTab('works')}
+          >
+            📁 Quản lý Đầu việc
+          </button>
+          <button
+            type="button"
+            className={styles.btnQuickCalendar}
+            onClick={() => onNavigateTab('calendar')}
+          >
+            📅 Mở Lịch ngày nhớ
+          </button>
         </div>
       </div>
 
-      {/* BIỂU MẪU THÊM MỚI (INLINE) */}
-      {showAddForm && (
-        <div className={styles.formCard}>
-          <h2 className={styles.formTitle}>Thêm Môn học hoặc Dự án mới</h2>
-          {formError && <div className={styles.emptyState}>{formError}</div>}
+      {errorMsg && <div className={styles.errorBox}>{errorMsg}</div>}
 
-          <form onSubmit={handleSaveSchedule}>
-            <div className={styles.formGrid}>
-              <input
-                type="text"
-                className={styles.inputField}
-                placeholder="Tên môn học / dự án (Ví dụ: Cơ sở dữ liệu, Thiết kế UI/UX...)"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                required
-              />
-              <select
-                className={styles.selectField}
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
+      {/* Thẻ tóm tắt nhanh */}
+      <div className={styles.summaryRow}>
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryIcon}>🔥</div>
+          <div>
+            <div className={styles.summaryValue}>{upcomingGoals.length}</div>
+            <div className={styles.summaryLabel}>Mục tiêu sắp tới hạn (Tối đa 5)</div>
+          </div>
+        </div>
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryIcon}>📌</div>
+          <div>
+            <div className={styles.summaryValue}>{upcomingDates.length}</div>
+            <div className={styles.summaryLabel}>Sự kiện sắp diễn ra (Tối đa 3)</div>
+          </div>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className={styles.loadingState}>Đang đồng bộ dữ liệu tổng quan...</div>
+      ) : (
+        <div className={styles.twoColGrid}>
+          {/* CỘT 1: 5 GOALS GẦN HẠN NHẤT */}
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2 className={styles.panelTitle}>🎯 Mục tiêu cần hoàn thành sớm</h2>
+                <p className={styles.panelSub}>
+                  5 mục tiêu chưa hoàn thành có hạn chót gần nhất từ mọi đầu việc
+                </p>
+              </div>
+              <button
+                type="button"
+                className={styles.linkBtn}
+                onClick={() => onNavigateTab('works')}
               >
-                <option value="Môn học">Môn học</option>
-                <option value="Dự án">Dự án</option>
-                <option value="Mục tiêu cá nhân">Mục tiêu cá nhân</option>
-              </select>
+                Xem tất cả Work →
+              </button>
             </div>
 
-            <input
-              type="text"
-              className={styles.inputField}
-              placeholder="Mô tả ngắn gọn về mục tiêu..."
-              value={newDesc}
-              onChange={(e) => setNewDesc(e.target.value)}
-            />
-
-            <div className={styles.stageListInput}>
-              <div className={styles.stagesHeader}>Các giai đoạn nhỏ của mục này:</div>
-              <div>
-                {newStages.map((st, idx) => (
-                  <span key={idx} className={styles.stageTagItem}>
-                    Giai đoạn {idx + 1}: {st.title}
-                    <button
-                      type="button"
-                      className={styles.btnRemoveStage}
-                      onClick={() => handleRemoveStageFromForm(idx)}
-                    >
-                      ✕
-                    </button>
-                  </span>
-                ))}
-              </div>
-
-              <div className={styles.stageInputRow}>
-                <input
-                  type="text"
-                  className={styles.inputField}
-                  placeholder="Nhập tên giai đoạn (Ví dụ: Làm bài tập tuần 1, Báo cáo đề cương...)"
-                  value={stageInputText}
-                  onChange={(e) => setStageInputText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddStageToForm();
-                    }
-                  }}
-                />
+            {upcomingGoals.length === 0 ? (
+              <div className={styles.emptyPanel}>
+                <p>Tuyệt vời! Bạn không có mục tiêu nào đang tồn đọng.</p>
                 <button
                   type="button"
                   className={styles.btnSecondary}
-                  onClick={handleAddStageToForm}
+                  onClick={() => onNavigateTab('works')}
                 >
-                  + Thêm giai đoạn
+                  + Vào trang Đầu việc để thêm mới
                 </button>
               </div>
-            </div>
+            ) : (
+              <div className={styles.listContainer}>
+                {upcomingGoals.map((goal) => {
+                  const badge = getDeadlineBadgeInfo(goal.goal_end_date);
+                  return (
+                    <div key={goal.goal_id} className={styles.goalRow}>
+                      <button
+                        type="button"
+                        className={styles.checkTrigger}
+                        onClick={() => handleQuickCompleteGoal(goal.work_id, goal.goal_id)}
+                        title="Đánh dấu hoàn thành mục tiêu này"
+                      >
+                        ✓
+                      </button>
+                      <span
+                        className={styles.colorBar}
+                        style={{ backgroundColor: goal.goal_color || '#EF4444' }}
+                      />
+                      <div
+                        className={styles.goalMain}
+                        onClick={() => handleJumpToWork(goal.work_id)}
+                        title="Bấm để mở chi tiết đầu việc này"
+                      >
+                        <div className={styles.goalTitle}>{goal.goal_name}</div>
+                        <div className={styles.goalMeta}>
+                          <span className={styles.workTag}>📁 {goal.work_name}</span>
+                          {goal.goal_range && <span>• Độ lớn: {goal.goal_range}</span>}
+                        </div>
+                      </div>
+                      <div className={styles.goalRight}>
+                        <span className={`${styles.deadlineBadge} ${styles[badge.status]}`}>
+                          {badge.label}
+                        </span>
+                        <span className={styles.dateText}>
+                          {formatDisplayDate(goal.goal_end_date)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
 
-            <div className={styles.formActions}>
+          {/* CỘT 2: 3 NGÀY ĐẶC BIỆT SẮP TỚI */}
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2 className={styles.panelTitle}>📅 Ngày đặc biệt sắp tới</h2>
+                <p className={styles.panelSub}>3 mốc thời gian quan trọng gần nhất bạn đã lưu</p>
+              </div>
               <button
                 type="button"
-                className={styles.btnSecondary}
-                onClick={() => setShowAddForm(false)}
+                className={styles.linkBtn}
+                onClick={() => onNavigateTab('calendar')}
               >
-                Hủy bỏ
-              </button>
-              <button type="submit" className={styles.btnPrimary}>
-                Lưu vào hệ thống
+                Mở Lịch →
               </button>
             </div>
-          </form>
-        </div>
-      )}
 
-      {/* THANH CÔNG CỤ BỘ LỌC */}
-      <div className={styles.toolbar}>
-        <div className={styles.filters}>
-          {['Tất cả', 'Môn học', 'Dự án', 'Mục tiêu cá nhân'].map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              className={`${styles.filterBtn} ${filterCategory === cat ? styles.active : ''}`}
-              onClick={() => setFilterCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* DANH SÁCH CARDS THÀNH VIÊN */}
-      {isFetching ? (
-        <div className={styles.emptyState}>
-          <p>Đang tải dữ liệu lịch trình của bạn...</p>
-        </div>
-      ) : filteredItems.length === 0 ? (
-        <div className={styles.emptyState}>
-          <p>Chưa có mục nào trong danh sách. Hãy nhấn nút thêm mới để bắt đầu theo dõi!</p>
-          <button
-            type="button"
-            className={styles.btnPrimary}
-            onClick={() => setShowAddForm(true)}
-          >
-            + Thêm môn học / dự án đầu tiên
-          </button>
-        </div>
-      ) : (
-        <div className={styles.itemsGrid}>
-          {filteredItems.map((item) => (
-            <div key={item._id} className={styles.itemCard}>
-              <div className={styles.itemCardHeader}>
-                <span
-                  className={`${styles.itemCategory} ${
-                    item.category === 'Dự án'
-                      ? styles.project
-                      : item.category === 'Mục tiêu cá nhân'
-                      ? styles.goal
-                      : ''
-                  }`}
-                >
-                  {item.category}
-                </span>
+            {upcomingDates.length === 0 ? (
+              <div className={styles.emptyPanel}>
+                <p>Chưa có sự kiện hay ngày đặc biệt nào sắp diễn ra.</p>
                 <button
                   type="button"
-                  className={styles.btnDelete}
-                  title="Xóa mục này"
-                  onClick={() => handleDeleteItem(item._id)}
+                  className={styles.btnSecondary}
+                  onClick={() => onNavigateTab('calendar')}
                 >
-                  🗑
+                  + Lưu ngày đặc biệt trên Lịch
                 </button>
               </div>
-
-              <h3 className={styles.itemTitle}>{item.title}</h3>
-              {item.description && <p className={styles.itemDesc}>{item.description}</p>}
-
-              <div className={styles.progressContainer}>
-                <div className={styles.progressLabelRow}>
-                  <span>Tiến độ thực tế</span>
-                  <span
-                    className={`${styles.progressPercentage} ${
-                      item.progressPercentage === 100 ? styles.completed : ''
-                    }`}
-                  >
-                    {item.progressPercentage}%
-                  </span>
-                </div>
-                <div className={styles.progressBarBg}>
-                  <div
-                    className={`${styles.progressBarFill} ${
-                      item.progressPercentage === 100 ? styles.completed : ''
-                    }`}
-                    style={{ width: `${item.progressPercentage}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.stagesHeader}>Các giai đoạn:</div>
-              <div className={styles.stageList}>
-                {item.stages &&
-                  item.stages.map((stage) => (
+            ) : (
+              <div className={styles.listContainer}>
+                {upcomingDates.map((item) => {
+                  const badge = getDeadlineBadgeInfo(item.date_date);
+                  return (
                     <div
-                      key={stage._id}
-                      className={`${styles.stageItem} ${stage.isCompleted ? styles.completed : ''}`}
-                      onClick={() =>
-                        handleToggleRealStage(item._id, stage._id, stage.isCompleted)
-                      }
+                      key={item.date_id}
+                      className={styles.dateRow}
+                      onClick={() => onNavigateTab('calendar')}
                     >
                       <div
-                        className={`${styles.checkbox} ${stage.isCompleted ? styles.checked : ''}`}
+                        className={styles.dateBadgeBox}
+                        style={{ borderColor: item.date_color || '#3B82F6' }}
                       >
-                        {stage.isCompleted ? '✓' : ''}
+                        <span
+                          className={styles.dateDot}
+                          style={{ backgroundColor: item.date_color || '#3B82F6' }}
+                        />
+                        <span>{formatDisplayDate(item.date_date)}</span>
                       </div>
-                      <span className={styles.stageTitle}>{stage.title}</span>
+                      <div className={styles.dateInfo}>
+                        <div className={styles.dateName}>{item.date_name}</div>
+                        <span className={`${styles.deadlineBadge} ${styles[badge.status]}`}>
+                          {badge.label}
+                        </span>
+                      </div>
                     </div>
-                  ))}
+                  );
+                })}
               </div>
-            </div>
-          ))}
+            )}
+          </section>
         </div>
       )}
     </div>

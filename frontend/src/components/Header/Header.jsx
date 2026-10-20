@@ -1,17 +1,23 @@
 /**
  * TÊN FILE: Header.jsx
- * CÔNG DỤNG: Giao diện thanh điều hướng Header hiển thị thương hiệu, trạng thái đăng nhập và mã người dùng userId.
+ * CÔNG DỤNG: Giao diện thanh điều hướng Header hiển thị thương hiệu, 3 tab chuyển đổi giao diện chính (Dashboard, Work, Calendar) và thông tin người dùng.
  * PHẠM VI DÙNG: Component Header (Cấp 1 - Components).
  */
 
 import { useAuth } from '../../app/providers/AuthContext.jsx';
 import styles from './Header.module.scss';
 
+const NAV_ITEMS = [
+  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+  { id: 'works', label: 'Đầu việc (Work)', icon: '📁' },
+  { id: 'calendar', label: 'Lịch ngày nhớ', icon: '📅' },
+];
+
 /**
  * Component thanh điều hướng chính của ứng dụng.
- * @param {object} props - Thuộc tính component gồm onOpenAuth và onOpenSnakeGame
+ * @param {object} props - Thuộc tính gồm activeTab, onChangeTab, onOpenAuth và onOpenSnakeGame
  */
-export function Header({ onOpenAuth, onOpenSnakeGame }) {
+export function Header({ activeTab, onChangeTab, onOpenAuth, onOpenSnakeGame }) {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   /**
@@ -28,7 +34,6 @@ export function Header({ onOpenAuth, onOpenSnakeGame }) {
     <header className={styles.header}>
       <div className={styles.container}>
         <div className={styles.leftSection}>
-          {/* Nút nhỏ chuyển đổi sang game Rắn săn mồi ở góc trên bên trái */}
           <button
             type="button"
             className={styles.btnSnakeToggle}
@@ -39,14 +44,34 @@ export function Header({ onOpenAuth, onOpenSnakeGame }) {
             <span className={styles.snakeText}>Rắn săn mồi</span>
           </button>
 
-          <div className={styles.brand}>
+          <div
+            className={styles.brand}
+            onClick={() => onChangeTab && onChangeTab('dashboard')}
+          >
             <div className={styles.logoIcon}>✦</div>
             <div className={styles.brandText}>
               <span className={styles.brandName}>StudyTrack</span>
-              <span className={styles.brandDesc}>Theo dõi lịch trình & đầu việc theo giai đoạn</span>
+              <span className={styles.brandDesc}>Quản lý Mục tiêu & Lịch trình</span>
             </div>
           </div>
         </div>
+
+        {/* Thanh điều hướng 3 giao diện chính */}
+        <nav className={styles.navTabs} aria-label="Điều hướng chính">
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`${styles.navTabBtn} ${
+                activeTab === item.id ? styles.activeTab : ''
+              }`}
+              onClick={() => onChangeTab && onChangeTab(item.id)}
+            >
+              <span className={styles.navIcon}>{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
 
         <div className={styles.actions}>
           {isLoading ? (

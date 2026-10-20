@@ -1,0 +1,569 @@
+/**
+ * TÊN FILE: WorkView.module.scss
+ * CÔNG DỤNG: Định dạng SCSS Module cho giao diện Quản lý Đầu việc vắn tắt và bảng chi tiết Goal (Giao diện 2).
+ * PHẠM VI DÙNG: Phân hệ Customer (WorkView).
+ */
+
+@use '../../app/styles/variables' as *;
+@use '../../app/styles/mixins' as *;
+
+.workView {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  width: 100%;
+}
+
+.topHeader {
+  @include flex-between;
+  align-items: flex-start;
+  margin-bottom: 1.75rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: $color-text-main;
+  margin-bottom: 0.35rem;
+}
+
+.pageSubtitle {
+  font-size: 0.92rem;
+  color: $color-text-muted;
+  max-width: 760px;
+  line-height: 1.5;
+
+  strong {
+    color: #93c5fd;
+  }
+}
+
+.guestNotice {
+  @include flex-between;
+  padding: 0.85rem 1.25rem;
+  background-color: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: $radius-md;
+  color: #fde68a;
+  font-size: 0.88rem;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btnSmallAuth {
+  @include button-base;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.82rem;
+  background-color: $color-warning;
+  color: #111827;
+  font-weight: 700;
+}
+
+.errorBanner {
+  padding: 0.85rem 1.25rem;
+  border-radius: $radius-md;
+  background-color: $color-danger-bg;
+  border: 1px solid $color-danger;
+  color: #fca5a5;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.btnPrimary {
+  @include button-base;
+  background-color: $color-primary;
+  color: #ffffff;
+  font-weight: 600;
+
+  &:hover {
+    background-color: $color-primary-hover;
+    box-shadow: $shadow-glow;
+  }
+}
+
+.btnSecondary {
+  @include button-base;
+  background-color: $color-surface-card;
+  color: $color-text-main;
+  border-color: $color-border;
+
+  &:hover {
+    border-color: $color-border-light;
+    background-color: $color-surface-hover;
+  }
+}
+
+.formCard {
+  @include card-base;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  background-color: $color-surface-card;
+  border-color: rgba(59, 130, 246, 0.45);
+}
+
+.formHeader {
+  @include flex-between;
+  margin-bottom: 1.25rem;
+
+  h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: $color-text-main;
+  }
+}
+
+.btnClose {
+  background: none;
+  border: none;
+  color: $color-text-muted;
+  font-size: 1.1rem;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-text-main;
+  }
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formRowSecond {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: $color-text-muted;
+  }
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  background-color: $color-bg;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  color: $color-text-main;
+  font-size: 0.92rem;
+  outline: none;
+
+  &:focus {
+    border-color: $color-primary;
+  }
+}
+
+.colorPickerRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.colorSwatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform $transition-fast;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  &.selected {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px $color-primary;
+  }
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+// =======================================
+// LƯỚI THẺ WORK VẮN TẮT
+// =======================================
+.worksGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+
+  @include tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.workCard {
+  @include card-base;
+  border-top: 4px solid $color-primary;
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: $color-border-light;
+  }
+
+  &.activeCard {
+    background: linear-gradient(180deg, rgba(37, 99, 235, 0.14), rgba(17, 24, 39, 0.95));
+    border-color: $color-primary;
+    box-shadow: $shadow-glow;
+  }
+}
+
+.workCardTop {
+  @include flex-between;
+  margin-bottom: 0.75rem;
+}
+
+.workBadges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.goalCountPill {
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.22rem 0.65rem;
+  border-radius: $radius-full;
+  background-color: rgba(59, 130, 246, 0.16);
+  color: #93c5fd;
+}
+
+.expiredPill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: $radius-full;
+  background-color: $color-danger-bg;
+  color: #fca5a5;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: $color-text-dim;
+  cursor: pointer;
+  padding: 0.25rem 0.45rem;
+  border-radius: $radius-sm;
+  font-size: 0.95rem;
+  transition: all $transition-fast;
+
+  &:hover {
+    color: $color-text-main;
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+
+  &.danger:hover {
+    color: $color-danger;
+    background-color: $color-danger-bg;
+  }
+}
+
+.workTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: $color-text-main;
+  margin-bottom: 0.35rem;
+}
+
+.workDesc {
+  font-size: 0.85rem;
+  color: $color-text-muted;
+  margin-bottom: 0.85rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dateRangeRow {
+  font-size: 0.78rem;
+  color: $color-text-dim;
+  margin-bottom: 1rem;
+  margin-top: auto;
+}
+
+.progressSection {
+  margin-bottom: 0.85rem;
+}
+
+.progressHeader {
+  @include flex-between;
+  font-size: 0.8rem;
+  color: $color-text-muted;
+  margin-bottom: 0.35rem;
+}
+
+.progressValue {
+  font-weight: 700;
+  color: #93c5fd;
+
+  &.done {
+    color: $color-success;
+  }
+}
+
+.progressTrack {
+  height: 8px;
+  background-color: $color-bg;
+  border-radius: $radius-full;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: $radius-full;
+  transition: width 0.3s ease;
+}
+
+.clickHint {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #93c5fd;
+  text-align: center;
+  padding-top: 0.65rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+// =======================================
+// KHUNG CHI TIẾT GOALS CỦA WORK ĐANG CHỌN
+// =======================================
+.goalDetailSection {
+  @include card-base;
+  padding: 1.75rem;
+  border-color: rgba(59, 130, 246, 0.45);
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(11, 15, 25, 0.98));
+}
+
+.goalDetailHeader {
+  @include flex-between;
+  align-items: flex-start;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid $color-border;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.detailTag {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #93c5fd;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.detailTitle {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: $color-text-main;
+
+  span {
+    color: #93c5fd;
+  }
+}
+
+.detailSub {
+  font-size: 0.85rem;
+  color: $color-text-muted;
+  margin-top: 0.2rem;
+}
+
+.detailActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.goalFormBox {
+  background-color: $color-surface-card;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.goalFormTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $color-text-main;
+  margin-bottom: 1rem;
+}
+
+.loadingGoals,
+.emptyGoals,
+.emptyBox {
+  @include card-base;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: $color-text-muted;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.goalsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.goalItem {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.95rem 1.1rem;
+  background-color: $color-bg;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  transition: all $transition-fast;
+
+  &:hover {
+    border-color: $color-border-light;
+  }
+
+  &.completed {
+    background-color: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.25);
+
+    .goalItemTitle {
+      text-decoration: line-through;
+      color: $color-text-dim;
+    }
+  }
+}
+
+.checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid $color-border-light;
+  background: transparent;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  @include flex-center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all $transition-fast;
+
+  &.checked {
+    background-color: $color-success;
+    border-color: $color-success;
+  }
+}
+
+.goalColorDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.goalContent {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.goalItemTitle {
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: $color-text-main;
+  margin-bottom: 0.2rem;
+}
+
+.goalItemDesc {
+  font-size: 0.84rem;
+  color: $color-text-muted;
+  margin-bottom: 0.35rem;
+}
+
+.goalItemMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.78rem;
+  color: $color-text-dim;
+  flex-wrap: wrap;
+}
+
+.deadlineTag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.12rem 0.5rem;
+  border-radius: $radius-full;
+
+  &.overdue {
+    background-color: $color-danger-bg;
+    color: #fca5a5;
+  }
+
+  &.today {
+    background-color: $color-warning-bg;
+    color: #fde68a;
+  }
+
+  &.soon {
+    background-color: rgba(59, 130, 246, 0.16);
+    color: #93c5fd;
+  }
+
+  &.normal {
+    background-color: rgba(16, 185, 129, 0.14);
+    color: #6ee7b7;
+  }
+}
+
+.goalItemActions {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
