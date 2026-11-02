@@ -1,6 +1,6 @@
 /**
  * TÊN FILE: Dashboard.module.scss
- * CÔNG DỤNG: Định dạng SCSS Module cho giao diện Dashboard tổng quan (Giao diện 1) với hỗ trợ Dark/Light mode và responsive tối ưu.
+ * CÔNG DỤNG: Định dạng SCSS Module cho giao diện Dashboard tổng quan (Giao diện 1) với hỗ trợ Dark/Light mode, tối ưu full-width và responsive hoàn hảo cho di động.
  * PHẠM VI DÙNG: Phân hệ Customer (Dashboard).
  */
 
@@ -12,9 +12,10 @@
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
   width: 100%;
+  box-sizing: border-box;
 
   @include mobile {
-    padding: 1.25rem 0.85rem 3.5rem;
+    padding: 1rem 0.75rem 3.5rem;
   }
 }
 
@@ -25,10 +26,12 @@
   margin-bottom: 2rem;
   background: var(--hero-radial-bg);
   border-color: rgba(59, 130, 246, 0.3);
+  width: 100%;
+  box-sizing: border-box;
 
   @include mobile {
-    padding: 1.75rem 1rem;
-    margin-bottom: 1.5rem;
+    padding: 1.6rem 1rem;
+    margin-bottom: 1.25rem;
   }
 }
 
@@ -57,7 +60,8 @@
   }
 
   @include mobile {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
+    line-height: 1.3;
   }
 }
 
@@ -69,7 +73,7 @@
   line-height: 1.6;
 
   @include mobile {
-    font-size: 0.88rem;
+    font-size: 0.86rem;
     margin-bottom: 1.25rem;
   }
 }
@@ -79,10 +83,11 @@
   justify-content: center;
   gap: 1rem;
   flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 
   @include mobile {
     flex-direction: column;
-    width: 100%;
 
     button {
       width: 100%;
@@ -119,11 +124,13 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
   margin-bottom: 2rem;
+  width: 100%;
+  box-sizing: border-box;
 
   @include tablet {
     grid-template-columns: 1fr;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
   }
 }
 
@@ -131,6 +138,8 @@
   @include card-base;
   padding: 1.4rem;
   cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
 
   &:hover {
     border-color: $color-primary;
@@ -151,7 +160,7 @@
   }
 
   @include mobile {
-    padding: 1.1rem;
+    padding: 1rem;
   }
 }
 
@@ -169,11 +178,14 @@
   border-color: rgba(59, 130, 246, 0.28);
   gap: 1rem;
   flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 
   @include mobile {
     padding: 1.15rem;
     flex-direction: column;
     align-items: stretch;
+    margin-bottom: 1rem;
   }
 }
 
@@ -212,8 +224,8 @@
     button {
       flex: 1;
       justify-content: center;
-      padding: 0.45rem 0.75rem;
-      font-size: 0.82rem;
+      padding: 0.45rem 0.65rem;
+      font-size: 0.8rem;
     }
   }
 }
@@ -249,10 +261,12 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 1.25rem;
   margin-bottom: 1.75rem;
+  width: 100%;
+  box-sizing: border-box;
 
   @include mobile {
     grid-template-columns: 1fr;
-    gap: 0.85rem;
+    gap: 0.75rem;
     margin-bottom: 1.25rem;
   }
 }
@@ -263,9 +277,12 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  width: 100%;
+  box-sizing: border-box;
 
   @include mobile {
-    padding: 1rem;
+    padding: 0.95rem 1rem;
+    gap: 0.75rem;
   }
 }
 
@@ -277,6 +294,12 @@
   @include flex-center;
   font-size: 1.35rem;
   flex-shrink: 0;
+
+  @include mobile {
+    width: 38px;
+    height: 38px;
+    font-size: 1.15rem;
+  }
 }
 
 .summaryValue {
@@ -286,7 +309,7 @@
   line-height: 1.1;
 
   @include mobile {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
   }
 }
 
@@ -294,12 +317,18 @@
   font-size: 0.82rem;
   color: $color-text-muted;
   margin-top: 0.15rem;
+
+  @include mobile {
+    font-size: 0.76rem;
+  }
 }
 
 .twoColGrid {
   display: grid;
   grid-template-columns: 1.25fr 0.95fr;
   gap: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 
   @include tablet {
     grid-template-columns: 1fr;
@@ -312,9 +341,12 @@
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 
   @include mobile {
-    padding: 1.1rem;
+    padding: 1rem 0.75rem;
   }
 }
 
@@ -332,13 +364,17 @@
   margin-bottom: 0.2rem;
 
   @include mobile {
-    font-size: 1.02rem;
+    font-size: 0.98rem;
   }
 }
 
 .panelSub {
   font-size: 0.8rem;
   color: $color-text-dim;
+
+  @include mobile {
+    font-size: 0.75rem;
+  }
 }
 
 .linkBtn {
@@ -369,6 +405,12 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+
+  @include mobile {
+    gap: 0.55rem;
+  }
 }
 
 .goalRow {
@@ -380,14 +422,18 @@
   border: 1px solid $color-border;
   border-radius: $radius-md;
   transition: border-color $transition-fast;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 
   &:hover {
     border-color: $color-border-light;
   }
 
   @include mobile {
-    padding: 0.75rem 0.85rem;
-    gap: 0.65rem;
+    padding: 0.75rem 0.65rem;
+    gap: 0.5rem;
+    align-items: flex-start;
   }
 }
 
@@ -410,6 +456,10 @@
     background-color: $color-success-bg;
     color: $color-success;
   }
+
+  @include mobile {
+    margin-top: 2px;
+  }
 }
 
 .colorBar {
@@ -417,6 +467,11 @@
   height: 36px;
   border-radius: $radius-full;
   flex-shrink: 0;
+
+  @include mobile {
+    height: 38px;
+    margin-top: 2px;
+  }
 }
 
 .goalMain {
@@ -430,12 +485,11 @@
   font-weight: 600;
   color: $color-text-main;
   margin-bottom: 0.25rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-word;
 
   @include mobile {
-    font-size: 0.88rem;
+    font-size: 0.86rem;
+    white-space: normal;
   }
 }
 
@@ -446,6 +500,11 @@
   font-size: 0.78rem;
   color: $color-text-muted;
   flex-wrap: wrap;
+
+  @include mobile {
+    font-size: 0.72rem;
+    gap: 0.35rem;
+  }
 }
 
 .workTag {
@@ -459,6 +518,10 @@
   align-items: flex-end;
   gap: 0.25rem;
   flex-shrink: 0;
+
+  @include mobile {
+    gap: 0.15rem;
+  }
 }
 
 .deadlineBadge {
@@ -466,6 +529,7 @@
   font-weight: 600;
   padding: 0.18rem 0.55rem;
   border-radius: $radius-full;
+  white-space: nowrap;
 
   &.overdue {
     background-color: $color-danger-bg;
@@ -486,11 +550,21 @@
     background-color: rgba(16, 185, 129, 0.15);
     color: $color-success;
   }
+
+  @include mobile {
+    font-size: 0.68rem;
+    padding: 0.12rem 0.45rem;
+  }
 }
 
 .dateText {
   font-size: 0.75rem;
   color: $color-text-dim;
+  white-space: nowrap;
+
+  @include mobile {
+    font-size: 0.7rem;
+  }
 }
 
 .dateRow {
@@ -504,14 +578,19 @@
   border-radius: $radius-md;
   cursor: pointer;
   transition: border-color $transition-fast;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 
   &:hover {
     border-color: $color-primary;
   }
 
   @include mobile {
-    padding: 0.75rem 0.85rem;
-    gap: 0.65rem;
+    padding: 0.75rem 0.65rem;
+    gap: 0.45rem;
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
@@ -529,8 +608,9 @@
   flex-shrink: 0;
 
   @include mobile {
-    padding: 0.3rem 0.55rem;
+    padding: 0.2rem 0.5rem;
     font-size: 0.76rem;
+    width: fit-content;
   }
 }
 
@@ -549,9 +629,11 @@
   min-width: 0;
 
   @include mobile {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.2rem;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.4rem;
   }
 }
 
@@ -559,12 +641,12 @@
   font-size: 0.92rem;
   font-weight: 600;
   color: $color-text-main;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-word;
 
   @include mobile {
-    font-size: 0.85rem;
+    font-size: 0.86rem;
+    white-space: normal;
+    flex: 1;
   }
 }
 
@@ -584,6 +666,8 @@
   padding: 3rem;
   text-align: center;
   color: $color-text-muted;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .errorBox {
@@ -594,4 +678,6 @@
   color: $color-danger;
   margin-bottom: 1.25rem;
   font-size: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
 }
