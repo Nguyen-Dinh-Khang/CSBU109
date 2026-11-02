@@ -6,6 +6,7 @@
 
 import { useState, useCallback } from 'react';
 import { AuthProvider } from './providers/AuthContext.jsx';
+import { ThemeProvider } from './providers/ThemeContext.jsx';
 import Header from '../components/Header/index.js';
 import AuthModal from '../common/Auth/index.js';
 import Dashboard from '../customer/Dashboard/index.js';
@@ -115,13 +116,15 @@ function MainApp() {
 }
 
 /**
- * Component Root của ứng dụng được bọc bởi AuthProvider.
+ * Component Root của ứng dụng được bọc bởi ThemeProvider và AuthProvider.
  */
 export function App() {
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

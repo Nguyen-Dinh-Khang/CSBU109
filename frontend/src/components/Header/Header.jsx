@@ -1,16 +1,17 @@
 /**
  * TÊN FILE: Header.jsx
- * CÔNG DỤNG: Giao diện thanh điều hướng Header hiển thị thương hiệu, 3 tab chuyển đổi giao diện chính (Dashboard, Work, Calendar) và thông tin người dùng.
+ * CÔNG DỤNG: Giao diện thanh điều hướng Header hiển thị thương hiệu, nút chuyển đổi theme Sáng/Tối, 3 tab chuyển đổi giao diện chính (Dashboard, Work, Calendar) và thông tin người dùng.
  * PHẠM VI DÙNG: Component Header (Cấp 1 - Components).
  */
 
 import { useAuth } from '../../app/providers/AuthContext.jsx';
+import { useTheme } from '../../app/providers/ThemeContext.jsx';
 import styles from './Header.module.scss';
 
 const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-  { id: 'works', label: 'Đầu việc (Work)', icon: '📁' },
-  { id: 'calendar', label: 'Lịch ngày nhớ', icon: '📅' },
+  { id: 'dashboard', label: 'Dashboard', shortLabel: 'Tổng quan', icon: '📊' },
+  { id: 'works', label: 'Đầu việc (Work)', shortLabel: 'Đầu việc', icon: '📁' },
+  { id: 'calendar', label: 'Lịch ngày nhớ', shortLabel: 'Lịch', icon: '📅' },
 ];
 
 /**
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
  */
 export function Header({ activeTab, onChangeTab, onOpenAuth, onOpenSnakeGame }) {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   /**
    * Trích xuất ký tự đầu tiên của username làm biểu tượng avatar đại diện.
@@ -68,14 +70,25 @@ export function Header({ activeTab, onChangeTab, onOpenAuth, onOpenSnakeGame }) 
               onClick={() => onChangeTab && onChangeTab(item.id)}
             >
               <span className={styles.navIcon}>{item.icon}</span>
-              <span>{item.label}</span>
+              <span className={styles.tabFullLabel}>{item.label}</span>
+              <span className={styles.tabShortLabel}>{item.shortLabel}</span>
             </button>
           ))}
         </nav>
 
         <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.btnThemeToggle}
+            onClick={toggleTheme}
+            title={isDark ? 'Chuyển sang giao diện Sáng' : 'Chuyển sang giao diện Tối'}
+            aria-label="Đổi giao diện Sáng / Tối"
+          >
+            <span>{isDark ? '☀️' : '🌙'}</span>
+          </button>
+
           {isLoading ? (
-            <span className={styles.brandDesc}>Đang tải phiên...</span>
+            <span className={styles.brandDesc}>Đang tải...</span>
           ) : isAuthenticated && user ? (
             <>
               <div className={styles.userProfile}>

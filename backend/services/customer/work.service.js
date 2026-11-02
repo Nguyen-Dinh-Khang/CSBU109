@@ -57,14 +57,25 @@ export async function createWork(userId, workData) {
 
 /**
  * Function 5: Lấy toàn bộ danh sách đầu việc vắn tắt của người dùng kèm tiến độ, số lượng goal và cờ hết hạn (không kèm danh sách goals chi tiết).
+ * Hỗ trợ tìm kiếm nhanh theo work_name thông qua tham số search.
  * @param {string|number} userId - ID người dùng
+ * @param {string} [search=''] - Từ khóa tìm kiếm theo tên đầu việc
  * @returns {Promise<Array>} - Danh sách các đầu việc vắn tắt
  */
-export async function getWorks(userId) {
+export async function getWorks(userId, search = '') {
   const user = await findUserById(userId);
 
   const now = new Date();
-  return user.works.map((work) => {
+  let worksList = Array.isArray(user.works) ? user.works : [];
+
+  if (search && typeof search === 'string' && search.trim() !== '') {
+    const keyword = search.trim().toLowerCase();
+    worksList = worksList.filter(
+      (work) => work.work_name && work.work_name.toLowerCase().includes(keyword)
+    );
+  }
+
+  return worksList.map((work) => {
     const workObj = work.toObject();
     const goalsList = Array.isArray(workObj.goals) ? workObj.goals : [];
     const totalGoals = goalsList.length;

@@ -1,10 +1,56 @@
-﻿/**
+/**
  * TÊN FILE: global.scss
- * CÔNG DỤNG: Cấu hình CSS toàn cục, reset thuộc tính mặc định, font chữ và thanh cuộn.
+ * CÔNG DỤNG: Cấu hình CSS toàn cục, CSS Variables cho Dark / Light mode, reset thuộc tính mặc định, font chữ và thanh cuộn.
  * PHẠM VI DÙNG: Toàn hệ thống Frontend.
  */
 
 @use 'variables' as *;
+
+:root {
+  --color-bg: #0b0f19;
+  --color-surface: #111827;
+  --color-surface-card: #1f2937;
+  --color-surface-hover: #374151;
+  --color-border: #374151;
+  --color-border-light: #4b5563;
+  --color-text-main: #f9fafb;
+  --color-text-muted: #9ca3af;
+  --color-text-dim: #6b7280;
+  --header-bg: rgba(11, 15, 25, 0.88);
+  --header-border: #374151;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+  --card-active-bg: linear-gradient(180deg, rgba(37, 99, 235, 0.14), rgba(17, 24, 39, 0.95));
+  --hero-radial-bg: radial-gradient(circle at top, rgba(59, 130, 246, 0.16), rgba(17, 24, 39, 0.95));
+  --welcome-bg: linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(139, 92, 246, 0.08));
+  --calendar-empty-bg: rgba(17, 24, 39, 0.35);
+  --calendar-day-bg: #0b0f19;
+  --calendar-has-event: rgba(31, 41, 55, 0.75);
+}
+
+[data-theme="light"] {
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-card: #f1f5f9;
+  --color-surface-hover: #e2e8f0;
+  --color-border: #e2e8f0;
+  --color-border-light: #cbd5e1;
+  --color-text-main: #0f172a;
+  --color-text-muted: #475569;
+  --color-text-dim: #94a3b8;
+  --header-bg: rgba(255, 255, 255, 0.92);
+  --header-border: #e2e8f0;
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  --card-active-bg: linear-gradient(180deg, rgba(59, 130, 246, 0.1), rgba(255, 255, 255, 0.98));
+  --hero-radial-bg: radial-gradient(circle at top, rgba(59, 130, 246, 0.1), rgba(255, 255, 255, 0.98));
+  --welcome-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.06));
+  --calendar-empty-bg: rgba(241, 245, 249, 0.7);
+  --calendar-day-bg: #ffffff;
+  --calendar-has-event: rgba(248, 250, 252, 0.95);
+}
 
 *,
 *::before,
@@ -24,6 +70,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color $transition-normal, color $transition-normal;
 }
 
 #root {

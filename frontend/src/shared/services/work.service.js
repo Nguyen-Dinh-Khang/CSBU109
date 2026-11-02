@@ -17,11 +17,13 @@ export async function createWork(workData) {
 }
 
 /**
- * Function 5: Gọi API lấy danh sách toàn bộ đầu việc của người dùng.
+ * Function 5: Gọi API lấy danh sách toàn bộ đầu việc của người dùng, hỗ trợ tìm kiếm theo tên.
+ * @param {string} [search=''] - Từ khóa tìm kiếm work_name
  * @returns {Promise<Array>} - Danh sách đầu việc
  */
-export async function fetchWorks() {
-  const response = await authApi.get('/api/works');
+export async function fetchWorks(search = '') {
+  const params = search && typeof search === 'string' && search.trim() ? { search: search.trim() } : {};
+  const response = await authApi.get('/api/works', { params });
   return response.data.data || [];
 }
 

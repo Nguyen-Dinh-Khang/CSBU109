@@ -4,8 +4,9 @@
  * PHẠM VI DÙNG: Phân hệ Customer (WorkView).
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../../app/providers/AuthContext.jsx';
+import { useDebounce } from '../../shared/hooks/useDebounce.js';
 import {
   fetchWorks,
   createWork,
@@ -117,6 +118,11 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
   const [isLoadingWorks, setIsLoadingWorks] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // State tìm kiếm theo work_name và bộ lọc trạng thái
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebounce(searchInput, 300);
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'in_progress' | 'completed' | 'expired'
+
   // State biểu mẫu Tạo / Sửa Work
   const [showWorkForm, setShowWorkForm] = useState(false);
   const [editingWorkId, setEditingWorkId] = useState(null);
@@ -140,13 +146,21 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
   const [goalRange, setGoalRange] = useState(1);
   const [goalDescription, setGoalDescription] = useState('');
 
+  // Lấy danh sách đầu việc, hỗ trợ gửi request mỗi khi debouncedSearch thay đổi sau 300ms
   useEffect(() => {
     let isCancelled = false;
+    setIsLoadingWorks(true);
 
     if (!isAuthenticated) {
       Promise.resolve(DEMO_WORKS).then((demoList) => {
         if (!isCancelled) {
-          setWorks(demoList);
+          if (debouncedSearch && debouncedSearch.trim()) {
+            const kw = debouncedSearch.trim().toLowerCase();
+            setWorks(demoList.filter((w) => w.work_name && w.work_name.toLowerCase().includes(kw)));
+          } else {
+            setWorks(demoList);
+          }
+          setIsLoadingWorks(false);
         }
       });
       return () => {
@@ -154,7 +168,7 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
       };
     }
 
-    fetchWorks()
+    fetchWorks(debouncedSearch)
       .then((data) => {
         if (!isCancelled) {
           setWorks(data);
@@ -174,7 +188,57 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
     return () => {
       isCancelled = true;
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, debouncedSearch]);
+
+  /**
+   * Tính toán số lượng đầu việc theo từng trạng thái bằng các thuộc tính có sẵn.
+   */
+  const filterCounts = useMemo(() => {
+    let inProgress = 0;
+    let completed = 0;
+    let expired = 0;
+
+    works.forEach((w) => {
+      const progress = Number(w.progress_percentage) || 0;
+      const isExpired = Boolean(w.is_expired);
+
+      if (progress === 100) {
+        completed += 1;
+      } else if (isExpired) {
+        expired += 1;
+      } else {
+        inProgress += 1;
+      }
+    });
+
+    return {
+      all: works.length,
+      inProgress,
+      completed,
+      expired,
+    };
+  }, [works]);
+
+  /**
+   * Lọc danh sách đầu việc hiển thị theo tab trạng thái đang chọn.
+   */
+  const filteredWorks = useMemo(() => {
+    return works.filter((w) => {
+      const progress = Number(w.progress_percentage) || 0;
+      const isExpired = Boolean(w.is_expired);
+
+      if (statusFilter === 'in_progress') {
+        return progress < 100 && !isExpired;
+      }
+      if (statusFilter === 'completed') {
+        return progress === 100;
+      }
+      if (statusFilter === 'expired') {
+        return isExpired && progress < 100;
+      }
+      return true; // 'all'
+    });
+  }, [works, statusFilter]);
 
   /**
    * Gọi API GET /api/works/:work_id/goals để lấy toàn bộ mục tiêu chi tiết khi người dùng bấm vào một Work.
@@ -598,19 +662,121 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
         </div>
       )}
 
+      {/* THANH TÌM KIẾM THEO TÊN (DEBOUNCE 300MS) & BỘ LỌC TRẠNG THÁI */}
+      <div className={styles.filterBar}>
+        <div className={styles.searchBox}>
+          <span className={styles.searchIcon}>🔍</span>
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder="Tìm theo tên đầu việc (300ms debounce)..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+          {searchInput && (
+            <button
+              type="button"
+              className={styles.btnClearSearch}
+              onClick={() => setSearchInput('')}
+              title="Xóa từ khóa tìm kiếm"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        <div className={styles.statusPills} role="tablist" aria-label="Bộ lọc trạng thái đầu việc">
+          <button
+            type="button"
+            className={`${styles.pillBtn} ${statusFilter === 'all' ? styles.activePill : ''}`}
+            onClick={() => setStatusFilter('all')}
+          >
+            <span>Tất cả</span>
+            <span className={styles.pillCount}>{filterCounts.all}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.pillBtn} ${statusFilter === 'in_progress' ? styles.activePill : ''}`}
+            onClick={() => setStatusFilter('in_progress')}
+          >
+            <span>Đang làm</span>
+            <span className={styles.pillCount}>{filterCounts.inProgress}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.pillBtn} ${statusFilter === 'completed' ? styles.activePill : ''}`}
+            onClick={() => setStatusFilter('completed')}
+          >
+            <span>Hoàn thành</span>
+            <span className={styles.pillCount}>{filterCounts.completed}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.pillBtn} ${statusFilter === 'expired' ? styles.activePill : ''}`}
+            onClick={() => setStatusFilter('expired')}
+          >
+            <span>Quá hạn</span>
+            <span className={`${styles.pillCount} ${filterCounts.expired > 0 ? styles.alertCount : ''}`}>
+              {filterCounts.expired}
+            </span>
+          </button>
+        </div>
+      </div>
+
       {/* DANH SÁCH THẺ WORK VẮN TẮT (KHÔNG HIỂN THỊ GOALS BÊN TRONG) */}
       {isLoadingWorks ? (
         <div className={styles.emptyBox}>Đang tải danh sách đầu việc...</div>
       ) : works.length === 0 ? (
         <div className={styles.emptyBox}>
-          <p>Bạn chưa có đầu việc nào. Hãy tạo đầu việc đầu tiên để bắt đầu!</p>
-          <button type="button" className={styles.btnPrimary} onClick={handleOpenCreateWork}>
-            + Tạo Đầu việc đầu tiên
+          <p>
+            {searchInput
+              ? `Không tìm thấy đầu việc nào khớp với từ khóa "${searchInput}".`
+              : 'Bạn chưa có đầu việc nào. Hãy tạo đầu việc đầu tiên để bắt đầu!'}
+          </p>
+          {searchInput ? (
+            <button
+              type="button"
+              className={styles.btnSecondary}
+              onClick={() => setSearchInput('')}
+            >
+              Xóa từ khóa tìm kiếm
+            </button>
+          ) : (
+            <button type="button" className={styles.btnPrimary} onClick={handleOpenCreateWork}>
+              + Tạo Đầu việc đầu tiên
+            </button>
+          )}
+        </div>
+      ) : filteredWorks.length === 0 ? (
+        <div className={styles.emptyBox}>
+          <p>
+            Không có đầu việc nào thuộc trạng thái &quot;
+            {statusFilter === 'in_progress'
+              ? 'Đang làm'
+              : statusFilter === 'completed'
+              ? 'Hoàn thành'
+              : statusFilter === 'expired'
+              ? 'Quá hạn'
+              : statusFilter}
+            &quot;{searchInput ? ` và từ khóa "${searchInput}"` : ''}.
+          </p>
+          <button
+            type="button"
+            className={styles.btnSecondary}
+            onClick={() => {
+              setStatusFilter('all');
+              setSearchInput('');
+            }}
+          >
+            Xem tất cả đầu việc
           </button>
         </div>
       ) : (
         <div className={styles.worksGrid}>
-          {works.map((work) => {
+          {filteredWorks.map((work) => {
             const isSelected = work._id === selectedWorkId;
             const totalGoals = work.goals_count ?? 0;
             const completedGoals = work.completed_goals_count ?? 0;

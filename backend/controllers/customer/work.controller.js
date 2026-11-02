@@ -52,7 +52,8 @@ export async function createWork(req, res) {
 export async function getWorks(req, res) {
   try {
     const userId = req.user.id || req.user._id;
-    const works = await workService.getWorks(userId);
+    const { search } = req.query;
+    const works = await workService.getWorks(userId, search);
 
     return res.status(200).json({
       success: true,
