@@ -873,69 +873,91 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
         </div>
       </div>
 
-      {/* DANH SÁCH THẺ WORK VẮN TẮT (KHÔNG HIỂN THỊ GOALS BÊN TRONG) */}
-      {isLoadingWorks ? (
-        <div className={styles.emptyBox}>Đang tải danh sách đầu việc...</div>
-      ) : works.length === 0 ? (
-        <div className={styles.emptyBox}>
-          <p>
-            {searchInput
-              ? `Không tìm thấy đầu việc nào khớp với từ khóa "${searchInput}".`
-              : 'Bạn chưa có đầu việc nào. Hãy tạo đầu việc đầu tiên để bắt đầu!'}
-          </p>
-          {searchInput ? (
-            <button
-              type="button"
-              className={styles.btnSecondary}
-              onClick={() => setSearchInput('')}
-            >
-              Xóa từ khóa tìm kiếm
-            </button>
-          ) : (
-            <button type="button" className={styles.btnPrimary} onClick={handleOpenCreateWork}>
-              + Tạo Đầu việc đầu tiên
-            </button>
-          )}
-        </div>
-      ) : filteredWorks.length === 0 ? (
-        <div className={styles.emptyBox}>
-          <p>
-            Không có đầu việc nào thuộc trạng thái &quot;
-            {statusFilter === 'in_progress'
-              ? 'Đang làm'
-              : statusFilter === 'completed'
-              ? 'Hoàn thành'
-              : statusFilter === 'expired'
-              ? 'Quá hạn'
-              : statusFilter}
-            &quot;{searchInput ? ` và từ khóa "${searchInput}"` : ''}.
-          </p>
-          <button
-            type="button"
-            className={styles.btnSecondary}
-            onClick={() => {
-              setStatusFilter('all');
-              setSearchInput('');
-            }}
-          >
-            Xem tất cả đầu việc
-          </button>
-        </div>
-      ) : (
-        <div className={styles.worksGrid}>
-          {filteredWorks.map((work) => {
-            const isSelected = work._id === selectedWorkId;
-            const totalGoals = work.goals_count ?? 0;
-            const completedGoals = work.completed_goals_count ?? 0;
-            const progress = work.progress_percentage ?? 0;
-
-            return (
-              <div
-                key={work._id}
-                className={`${styles.workCard} ${isSelected ? styles.activeCard : ''}`}
-                style={{ borderTopColor: work.work_color || '#10B981' }}
-                onClick={() => handleSelectWork(work._id)}
+      {/* KHUNG BỐ CỤC CHÍNH SPLIT-VIEW (MASTER - DETAIL) */}
+      <div className={`${styles.mainContentLayout} ${activeWork ? styles.splitViewMode : ''}`}>
+        {/* CỘT 1: DANH SÁCH THẺ WORK (MASTER COLUMN) */}
+        <div className={`${styles.worksColumn} ${activeWork ? styles.compactColumn : ''}`}>
+          {activeWork && (
+            <div className={styles.compactListHeader}>
+              <span className={styles.compactListTitle}>
+                Danh sách đầu việc ({filteredWorks.length})
+              </span>
+              <button
+                type="button"
+                className={styles.btnExpandGrid}
+                onClick={() => setSelectedWorkId(null)}
+                title="Mở rộng xem toàn bộ lưới"
               >
+                ⤢ Mở rộng lưới
+              </button>
+            </div>
+          )}
+
+          {/* DANH SÁCH THẺ WORK VẮN TẮT */}
+          {isLoadingWorks ? (
+            <div className={styles.emptyBox}>Đang tải danh sách đầu việc...</div>
+          ) : works.length === 0 ? (
+            <div className={styles.emptyBox}>
+              <p>
+                {searchInput
+                  ? `Không tìm thấy đầu việc nào khớp với từ khóa "${searchInput}".`
+                  : 'Bạn chưa có đầu việc nào. Hãy tạo đầu việc đầu tiên để bắt đầu!'}
+              </p>
+              {searchInput ? (
+                <button
+                  type="button"
+                  className={styles.btnSecondary}
+                  onClick={() => setSearchInput('')}
+                >
+                  Xóa từ khóa tìm kiếm
+                </button>
+              ) : (
+                <button type="button" className={styles.btnPrimary} onClick={handleOpenCreateWork}>
+                  + Tạo Đầu việc đầu tiên
+                </button>
+              )}
+            </div>
+          ) : filteredWorks.length === 0 ? (
+            <div className={styles.emptyBox}>
+              <p>
+                Không có đầu việc nào thuộc trạng thái &quot;
+                {statusFilter === 'in_progress'
+                  ? 'Đang làm'
+                  : statusFilter === 'completed'
+                  ? 'Hoàn thành'
+                  : statusFilter === 'expired'
+                  ? 'Quá hạn'
+                  : statusFilter}
+                &quot;{searchInput ? ` và từ khóa "${searchInput}"` : ''}.
+              </p>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={() => {
+                  setStatusFilter('all');
+                  setSearchInput('');
+                }}
+              >
+                Xem tất cả đầu việc
+              </button>
+            </div>
+          ) : (
+            <div className={`${styles.worksGrid} ${activeWork ? styles.compactGrid : ''}`}>
+              {filteredWorks.map((work) => {
+                const isSelected = work._id === selectedWorkId;
+                const totalGoals = work.goals_count ?? 0;
+                const completedGoals = work.completed_goals_count ?? 0;
+                const progress = work.progress_percentage ?? 0;
+
+                return (
+                  <div
+                    key={work._id}
+                    className={`${styles.workCard} ${isSelected ? styles.activeCard : ''} ${
+                      activeWork ? styles.compactCard : ''
+                    }`}
+                    style={{ borderTopColor: work.work_color || '#10B981' }}
+                    onClick={() => handleSelectWork(work._id)}
+                  >
                 <div className={styles.workCardTop}>
                   <div className={styles.workBadges}>
                     <span className={styles.goalCountPill}>
@@ -1005,64 +1027,78 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
 
                 <div className={styles.clickHint}>
                   {isSelected
-                    ? '▼ Đang hiển thị chi tiết các Goal bên dưới'
-                    : '👆 Bấm vào để tải chi tiết các Goal'}
+                    ? '▶ Đang xem chi tiết'
+                    : '👆 Bấm vào để tải chi tiết'}
                 </div>
               </div>
             );
           })}
         </div>
       )}
+    </div>
 
-      {/* KHUNG CHI TIẾT GOALS (CHỈ HIỆN KHI BẤM VÀO 1 WORK CỤ THỂ -> GỬI FETCH) */}
-      {activeWork && (
-        <section className={styles.goalDetailSection}>
-          <div className={styles.goalDetailHeader}>
-            <div>
-              <div className={styles.detailTag}>Chi tiết các Goal được tải từ máy chủ</div>
-              <h2 className={styles.detailTitle}>
-                🎯 Danh sách Goal của: <span>{activeWork.work_name}</span>
-              </h2>
-              <p className={styles.detailSub}>
-                Tổng cộng {selectedWorkGoals.length} mục tiêu • Hoàn thành{' '}
-                {activeWork.progress_percentage ?? 0}%
-              </p>
+    {/* CỘT 2: CHI TIẾT GOAL & CHẶNG (DETAIL COLUMN) TRƯỢT RA BÊN PHẢI */}
+    {activeWork && (
+      <section className={`${styles.goalDetailSection} ${styles.goalDetailColumn}`}>
+        {/* THANH ĐIỀU HƯỚNG TRÊN MOBILE */}
+        <div className={styles.mobileBackRow}>
+          <button
+            type="button"
+            className={styles.btnMobileBack}
+            onClick={() => setSelectedWorkId(null)}
+          >
+            ← Quay lại danh sách đầu việc
+          </button>
+        </div>
 
-              {/* BỘ CHUYỂN ĐỔI CHẾ ĐỘ XEM: DANH SÁCH PHẲNG vs DẠNG CHẶNG ACCORDION */}
-              <div className={styles.viewModeSwitcher}>
-                <button
-                  type="button"
-                  className={`${styles.viewBtn} ${viewMode === 'list' ? styles.activeView : ''}`}
-                  onClick={() => setViewMode('list')}
-                >
-                  📋 Danh sách phẳng
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.viewBtn} ${viewMode === 'stages' ? styles.activeView : ''}`}
-                  onClick={() => setViewMode('stages')}
-                >
-                  🪜 Dạng Chặng Accordion ({selectedWorkStages.length})
-                </button>
-              </div>
-            </div>
-            <div className={styles.detailActions}>
+        <div className={styles.goalDetailHeader}>
+          <div>
+            <div className={styles.detailTag}>Chi tiết đầu việc & mục tiêu</div>
+            <h2 className={styles.detailTitle}>
+              🎯 <span>{activeWork.work_name}</span>
+            </h2>
+            <p className={styles.detailSub}>
+              {activeWork.work_description && `${activeWork.work_description} • `}
+              Tổng cộng {selectedWorkGoals.length} mục tiêu • Hoàn thành{' '}
+              {activeWork.progress_percentage ?? 0}%
+            </p>
+
+            {/* BỘ CHUYỂN ĐỔI CHẾ ĐỘ XEM: DANH SÁCH PHẲNG vs DẠNG CHẶNG ACCORDION */}
+            <div className={styles.viewModeSwitcher}>
               <button
                 type="button"
-                className={styles.btnPrimary}
-                onClick={handleOpenCreateGoal}
+                className={`${styles.viewBtn} ${viewMode === 'list' ? styles.activeView : ''}`}
+                onClick={() => setViewMode('list')}
               >
-                + Thêm Goal mới
+                📋 Danh sách phẳng
               </button>
               <button
                 type="button"
-                className={styles.btnSecondary}
-                onClick={() => setSelectedWorkId(null)}
+                className={`${styles.viewBtn} ${viewMode === 'stages' ? styles.activeView : ''}`}
+                onClick={() => setViewMode('stages')}
               >
-                Đóng chi tiết
+                🪜 Dạng Chặng Accordion ({selectedWorkStages.length})
               </button>
             </div>
           </div>
+          <div className={styles.detailActions}>
+            <button
+              type="button"
+              className={styles.btnPrimary}
+              onClick={handleOpenCreateGoal}
+            >
+              + Thêm Goal mới
+            </button>
+            <button
+              type="button"
+              className={styles.btnCloseDetail}
+              onClick={() => setSelectedWorkId(null)}
+              title="Thu nhỏ chi tiết"
+            >
+              ✕ Thu nhỏ
+            </button>
+          </div>
+        </div>
 
           {/* DANH SÁCH GOALS ĐÃ FETCH HOẶC HIỂN THỊ THEO DẠNG CHẶNG ACCORDION */}
           {isLoadingGoals ? (
@@ -1161,6 +1197,7 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
           )}
         </section>
       )}
+      </div>
 
       {/* MODAL TẠO LỘ TRÌNH THÔNG MINH BẰNG AI */}
       <AIRoadmapModal
