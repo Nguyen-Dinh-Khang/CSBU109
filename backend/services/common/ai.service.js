@@ -178,87 +178,100 @@ Hãy trả về DUY NHẤT một chuỗi JSON hợp lệ tuân thủ cấu trúc
 }
 `;
 
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: prompt }],
-          },
-        ],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.7,
+  const candidateModels = [
+    'gemini-3.1-flash-lite',
+    'gemini-3.5-flash-lite',
+    'gemini-3.8-flash',
+    'gemini-flash-latest',
+  ];
+
+  for (const model of candidateModels) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      }),
-    });
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: prompt }],
+            },
+          ],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            temperature: 0.7,
+          },
+        }),
+      });
 
-    if (!response.ok) {
-      console.warn('Gemini API phản hồi lỗi, chuyển sang bộ sinh dự phòng:', response.status);
-      return generateFallbackRoadmap(cleanSubject, numWeeks, goalDescription);
-    }
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.warn(`Model ${model} phản hồi mã lỗi ${response.status}:`, errorText);
+        continue; // Thử model tiếp theo
+      }
 
-    const data = await response.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!rawText) {
-      return generateFallbackRoadmap(cleanSubject, numWeeks, goalDescription);
-    }
+      const data = await response.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) {
+        continue;
+      }
 
-    const parsed = JSON.parse(rawText.trim());
+      const parsed = JSON.parse(rawText.trim());
 
-    // Chuẩn hóa ngày tháng thực tế từ hôm nay
-    const now = new Date();
-    let currentStart = new Date(now.getTime());
+      // Chuẩn hóa ngày tháng thực tế từ hôm nay
+      const now = new Date();
+      let currentStart = new Date(now.getTime());
 
-    const formattedStages = (parsed.stages || []).map((stg, sIndex) => {
-      const durDays = Number(stg.duration_days) || 14;
-      const stageStart = new Date(currentStart.getTime());
-      const stageEnd = new Date(stageStart.getTime() + (durDays - 1) * 86400000);
+      const formattedStages = (parsed.stages || []).map((stg, sIndex) => {
+        const durDays = Number(stg.duration_days) || 14;
+        const stageStart = new Date(currentStart.getTime());
+        const stageEnd = new Date(stageStart.getTime() + (durDays - 1) * 86400000);
 
-      const formattedGoals = (stg.goals || []).map((g) => {
-        const offDays = Math.min(durDays, Math.max(1, Number(g.offset_days) || Math.round(durDays / 2)));
-        const gDeadline = new Date(stageStart.getTime() + (offDays - 1) * 86400000);
+        const formattedGoals = (stg.goals || []).map((g) => {
+          const offDays = Math.min(durDays, Math.max(1, Number(g.offset_days) || Math.round(durDays / 2)));
+          const gDeadline = new Date(stageStart.getTime() + (offDays - 1) * 86400000);
+          return {
+            goal_name: g.goal_name || `Mục tiêu ${sIndex + 1}`,
+            goal_description: g.goal_description || '',
+            goal_end_date: gDeadline,
+            goal_color: '#EF4444',
+            goal_range: Number(g.goal_range) || 5,
+          };
+        });
+
+        currentStart = new Date(stageEnd.getTime() + 86400000);
+
         return {
-          goal_name: g.goal_name || `Mục tiêu ${sIndex + 1}`,
-          goal_description: g.goal_description || '',
-          goal_end_date: gDeadline,
-          goal_color: '#EF4444',
-          goal_range: Number(g.goal_range) || 5,
+          stage_name: stg.stage_name || `Chặng ${sIndex + 1}`,
+          stage_order: Number(stg.stage_order) || sIndex + 1,
+          stage_start_date: stageStart,
+          stage_end_date: stageEnd,
+          stage_description: stg.stage_description || '',
+          stage_color: stg.stage_color || '#3B82F6',
+          goals: formattedGoals,
         };
       });
 
-      currentStart = new Date(stageEnd.getTime() + 86400000);
+      const finalEndDate = new Date(now.getTime() + numWeeks * 7 * 86400000);
 
       return {
-        stage_name: stg.stage_name || `Chặng ${sIndex + 1}`,
-        stage_order: Number(stg.stage_order) || sIndex + 1,
-        stage_start_date: stageStart,
-        stage_end_date: stageEnd,
-        stage_description: stg.stage_description || '',
-        stage_color: stg.stage_color || '#3B82F6',
-        goals: formattedGoals,
+        work_name: parsed.work_name || cleanSubject,
+        work_description: parsed.work_description || `Lộ trình học tập môn ${cleanSubject}`,
+        work_start_date: now,
+        work_end_date: finalEndDate,
+        work_color: parsed.work_color || '#10B981',
+        stages: formattedStages,
+        is_ai_generated: true,
+        ai_note: `Được tạo bởi Google ${model}`,
       };
-    });
-
-    const finalEndDate = new Date(now.getTime() + numWeeks * 7 * 86400000);
-
-    return {
-      work_name: parsed.work_name || cleanSubject,
-      work_description: parsed.work_description || `Lộ trình học tập môn ${cleanSubject}`,
-      work_start_date: now,
-      work_end_date: finalEndDate,
-      work_color: parsed.work_color || '#10B981',
-      stages: formattedStages,
-      is_ai_generated: true,
-      ai_note: 'Được tạo bởi Google Gemini 2.5 Flash',
-    };
-  } catch (err) {
-    console.error('Lỗi khi gọi Gemini AI API, tự động kích hoạt bộ tạo dự phòng:', err.message);
-    return generateFallbackRoadmap(cleanSubject, numWeeks, goalDescription);
+    } catch (err) {
+      console.warn(`Lỗi khi gọi model ${model}:`, err.message);
+    }
   }
+
+  // Nếu tất cả candidate models đều không thành công, dùng fallback engine
+  console.warn('Tất cả models Gemini đều bận hoặc không phản hồi, kích hoạt bộ sinh dự phòng.');
+  return generateFallbackRoadmap(cleanSubject, numWeeks, goalDescription);
 }
