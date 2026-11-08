@@ -43,6 +43,7 @@ export async function getDashboardOverview(userId) {
           goal_range: goal.goal_range,
           work_id: work._id,
           work_name: work.work_name,
+          is_expired: new Date(goal.goal_end_date) < new Date(),
         });
       }
     });

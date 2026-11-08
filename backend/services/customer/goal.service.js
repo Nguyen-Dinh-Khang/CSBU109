@@ -23,6 +23,17 @@ async function findUserById(userId) {
 }
 
 /**
+ * Chuẩn hóa đối tượng Goal trả về kèm thuộc tính tính động is_expired (quá hạn chót và chưa hoàn thành).
+ * @param {object} goal - Mongoose subdocument Goal hoặc plain object
+ * @returns {object} - Goal object hoàn chỉnh kèm cờ is_expired
+ */
+function formatGoalResponse(goal) {
+  const gObj = goal.toObject ? goal.toObject() : { ...goal };
+  gObj.is_expired = !gObj.goal_check && new Date(gObj.goal_end_date) < new Date();
+  return gObj;
+}
+
+/**
  * Function 2: Tạo mục tiêu mới gán vào một đầu việc chỉ định, tự động tăng goals_count.
  * @param {string|number} userId - ID người dùng
  * @param {string} workId - ID đầu việc cha
@@ -45,7 +56,7 @@ export async function createGoal(userId, workId, goalData) {
     goal_name,
     goal_end_date: new Date(goal_end_date),
     goal_color: goal_color || '#EF4444',
-    goal_range: Number(goal_range) || 1,
+    goal_range: Math.min(5, Math.max(1, Number(goal_range) || 1)),
     goal_description: goal_description || '',
     goal_check: false,
     stage_id: stage_id || null,
@@ -56,7 +67,7 @@ export async function createGoal(userId, workId, goalData) {
 
   await user.save();
 
-  return work.goals[work.goals.length - 1];
+  return formatGoalResponse(work.goals[work.goals.length - 1]);
 }
 
 /**
@@ -75,9 +86,9 @@ export async function getGoalsByWorkId(userId, workId) {
     throw error;
   }
 
-  const sortedGoals = [...work.goals].sort(
-    (a, b) => new Date(a.goal_end_date) - new Date(b.goal_end_date)
-  );
+  const sortedGoals = [...work.goals]
+    .sort((a, b) => new Date(a.goal_end_date) - new Date(b.goal_end_date))
+    .map((g) => formatGoalResponse(g));
 
   const sortedStages = Array.isArray(work.stages)
     ? [...work.stages].sort((a, b) => (a.stage_order || 1) - (b.stage_order || 1))
@@ -130,7 +141,7 @@ export async function updateGoal(userId, workId, goalId, updateData) {
       if (field === 'goal_end_date') {
         goal[field] = new Date(updateData[field]);
       } else if (field === 'goal_range') {
-        goal[field] = Number(updateData[field]);
+        goal[field] = Math.min(5, Math.max(1, Number(updateData[field]) || 1));
       } else if (field === 'stage_id') {
         goal[field] = updateData[field] ? updateData[field] : null;
       } else {
@@ -140,7 +151,7 @@ export async function updateGoal(userId, workId, goalId, updateData) {
   });
 
   await user.save();
-  return goal;
+  return formatGoalResponse(goal);
 }
 
 /**
@@ -170,7 +181,7 @@ export async function toggleCheckGoal(userId, workId, goalId) {
   goal.goal_check = !goal.goal_check;
   await user.save();
 
-  return goal;
+  return formatGoalResponse(goal);
 }
 
 /**

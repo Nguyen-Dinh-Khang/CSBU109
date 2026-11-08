@@ -23,6 +23,19 @@ async function findUserById(userId) {
 }
 
 /**
+ * Chuẩn hóa giá trị ngày đầu vào thành Date object an toàn với múi giờ.
+ * Nếu là chuỗi YYYY-MM-DD, đặt vào 12:00:00 UTC để tránh lệch ngày/tháng ở bất kỳ múi giờ nào.
+ * @param {string|Date} dateValue - Giá trị ngày đầu vào
+ * @returns {Date} - Đối tượng Date đã chuẩn hóa
+ */
+function normalizeDateInput(dateValue) {
+  if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue.trim())) {
+    return new Date(`${dateValue.trim()}T12:00:00.000Z`);
+  }
+  return new Date(dateValue);
+}
+
+/**
  * Function 3: Tạo ngày đặc biệt mới cho người dùng.
  * @param {string|number} userId - ID người dùng
  * @param {object} dateData - Dữ liệu ngày đặc biệt gồm date_name, date_date, date_color
@@ -35,7 +48,7 @@ export async function createDate(userId, dateData) {
 
   const newDate = {
     date_name,
-    date_date: new Date(date_date),
+    date_date: normalizeDateInput(date_date),
     date_color: date_color || '#3B82F6',
   };
 
@@ -47,6 +60,7 @@ export async function createDate(userId, dateData) {
 
 /**
  * Function 9: Lấy danh sách ngày đặc biệt theo tháng và năm để hiển thị lên giao diện Lịch.
+ * Kiểm tra đa múi giờ (UTC, Local, UTC+7) để ngăn chặn lệch ngày đầu tháng hoặc cuối tháng.
  * @param {string|number} userId - ID người dùng
  * @param {number|string} month - Tháng cần xem (1 - 12)
  * @param {number|string} year - Năm cần xem (ví dụ: 2026)
@@ -63,10 +77,26 @@ export async function getDatesByMonthYear(userId, month, year) {
 
     dates = dates.filter((item) => {
       const itemDate = new Date(item.date_date);
-      // Sử dụng cả Local và UTC để linh hoạt múi giờ
-      const m = itemDate.getMonth() + 1;
-      const y = itemDate.getFullYear();
-      return m === targetMonth && y === targetYear;
+      if (Number.isNaN(itemDate.getTime())) return false;
+
+      // 1. Kiểm tra theo UTC
+      const utcM = itemDate.getUTCMonth() + 1;
+      const utcY = itemDate.getUTCFullYear();
+
+      // 2. Kiểm tra theo Local Server Timezone
+      const locM = itemDate.getMonth() + 1;
+      const locY = itemDate.getFullYear();
+
+      // 3. Kiểm tra theo Múi giờ Việt Nam (UTC+7)
+      const vnDate = new Date(itemDate.getTime() + 7 * 60 * 60 * 1000);
+      const vnM = vnDate.getUTCMonth() + 1;
+      const vnY = vnDate.getUTCFullYear();
+
+      return (
+        (utcM === targetMonth && utcY === targetYear) ||
+        (locM === targetMonth && locY === targetYear) ||
+        (vnM === targetMonth && vnY === targetYear)
+      );
     });
   }
 
@@ -95,7 +125,7 @@ export async function updateDate(userId, dateId, updateData) {
   allowedFields.forEach((field) => {
     if (updateData[field] !== undefined) {
       if (field === 'date_date') {
-        dateItem[field] = new Date(updateData[field]);
+        dateItem[field] = normalizeDateInput(updateData[field]);
       } else {
         dateItem[field] = updateData[field];
       }
