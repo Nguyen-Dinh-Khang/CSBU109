@@ -844,3 +844,71 @@
     margin-top: 2px;
   }
 }
+
+.headerButtonRow {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+
+  @include mobile {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.btnAiRoadmap {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+
+  &:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+  }
+}
+
+.viewModeSwitcher {
+  display: inline-flex;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 10px;
+  padding: 0.25rem;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+}
+
+.viewBtn {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: $color-text-muted;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: $color-text-main;
+  }
+
+  &.activeView {
+    background: $color-primary;
+    color: #ffffff;
+  }
+}
+

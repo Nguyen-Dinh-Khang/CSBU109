@@ -1,0 +1,435 @@
+/**
+ * TÊN FILE: StageAccordion.module.scss
+ * CÔNG DỤNG: Định dạng SCSS Module cho giao diện hiển thị Chặng dạng Accordion, hỗ trợ mở rộng tại chỗ và xem danh sách mục tiêu con.
+ * PHẠM VI DÙNG: Phân hệ Customer (WorkView).
+ */
+
+@use '../../../../app/styles/variables' as *;
+@use '../../../../app/styles/mixins' as *;
+
+.stageAccordion {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.stageControlBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  padding: 0.85rem 1.25rem;
+  border-radius: 12px;
+
+  @include mobile {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.controlHint {
+  font-size: 0.88rem;
+  color: $color-text-muted;
+
+  strong {
+    color: $color-text-main;
+  }
+}
+
+.controlActions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+
+  @include mobile {
+    flex-direction: column;
+  }
+}
+
+.btnPrimary {
+  background: $color-primary;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+
+  &:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+}
+
+.btnSecondary {
+  background: transparent;
+  color: $color-text-main;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+
+  &:hover {
+    background: var(--bg-hover, rgba(0, 0, 0, 0.05));
+    border-color: $color-primary;
+    color: $color-primary;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.stageList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.stageCard {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+  }
+
+  &.expanded {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    border-color: var(--stage-color, $color-primary);
+  }
+}
+
+.stageHeader {
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+  border-left: 5px solid var(--stage-color, $color-primary);
+  gap: 1rem;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--bg-hover, rgba(0, 0, 0, 0.02));
+  }
+
+  @include mobile {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
+}
+
+.stageHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex: 1;
+}
+
+.orderBadge {
+  background: var(--stage-color, $color-primary);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.stageTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stageName {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $color-text-main;
+  margin: 0;
+}
+
+.stageMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+  color: $color-text-muted;
+  flex-wrap: wrap;
+}
+
+.stageHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+
+  @include mobile {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+.stageProgressWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  min-width: 130px;
+
+  @include mobile {
+    align-items: flex-start;
+  }
+}
+
+.progressLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $color-text-muted;
+
+  &.done {
+    color: $color-primary;
+  }
+}
+
+.progressTrack {
+  width: 100%;
+  height: 6px;
+  background: var(--border-color, #e2e8f0);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 6px;
+  color: $color-text-muted;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $color-primary;
+    background: var(--bg-hover, rgba(0, 0, 0, 0.05));
+  }
+
+  &.danger:hover {
+    color: #ef4444;
+  }
+}
+
+.chevron {
+  font-size: 0.8rem;
+  color: $color-text-muted;
+  transition: transform 0.2s ease;
+
+  &.open {
+    transform: rotate(180deg);
+  }
+}
+
+.stageBody {
+  padding: 0 1.25rem 1.25rem;
+  border-top: 1px solid var(--border-color, #f1f5f9);
+  background: var(--bg-sub, #fafafa);
+}
+
+.stageDesc {
+  font-size: 0.9rem;
+  color: $color-text-muted;
+  margin: 1rem 0 0.85rem;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.bodyActionRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.goalCountText {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: $color-text-main;
+}
+
+.stageGoalsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.emptyStageGoals {
+  text-align: center;
+  padding: 1.75rem 1rem;
+  color: $color-text-muted;
+  font-size: 0.9rem;
+  background: var(--bg-card, #ffffff);
+  border: 1px dashed var(--border-color, #cbd5e1);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.goalItem {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+  }
+
+  &.completed {
+    opacity: 0.75;
+    background: var(--bg-completed, rgba(16, 185, 129, 0.04));
+
+    .goalItemTitle {
+      text-decoration: line-through;
+      color: $color-text-muted;
+    }
+  }
+}
+
+.checkbox {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border-color, #cbd5e1);
+  background: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: transparent;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $color-primary;
+  }
+
+  &.checked {
+    background: $color-primary;
+    border-color: $color-primary;
+    color: #ffffff;
+  }
+}
+
+.goalColorDot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  border-radius: 50%;
+}
+
+.goalContent {
+  flex: 1;
+  cursor: pointer;
+}
+
+.goalItemTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $color-text-main;
+}
+
+.goalItemDesc {
+  font-size: 0.82rem;
+  color: $color-text-muted;
+  margin-top: 0.2rem;
+}
+
+.goalItemMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.78rem;
+  color: $color-text-muted;
+  margin-top: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.deadlineTag {
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.overdue {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  &.today {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  &.soon {
+    background: #e0e7ff;
+    color: #4f46e5;
+  }
+
+  &.normal {
+    background: #f1f5f9;
+    color: #475569;
+  }
+}
+
+.goalItemActions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}

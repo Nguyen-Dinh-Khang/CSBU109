@@ -19,6 +19,15 @@ import {
   deleteGoal,
 } from '../../shared/services/work.service.js';
 import {
+  createStage,
+  updateStage,
+  deleteStage,
+  autoAssignGoals,
+} from '../../shared/services/stage.service.js';
+import { StageAccordion } from './components/StageAccordion/StageAccordion.jsx';
+import { StageModal } from './components/StageModal/StageModal.jsx';
+import { AIRoadmapModal } from './components/AIRoadmapModal/AIRoadmapModal.jsx';
+import {
   formatDisplayDate,
   toInputDateValue,
   getDeadlineBadgeInfo,
@@ -132,10 +141,12 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
   const [workColor, setWorkColor] = useState('#10B981');
   const [workDescription, setWorkDescription] = useState('');
 
-  // State khi người dùng bấm chọn 1 Work cụ thể để fetch tất cả các Goal của Work đó
+  // State khi người dùng bấm chọn 1 Work cụ thể để fetch tất cả các Goal và Stage của Work đó
   const [selectedWorkId, setSelectedWorkId] = useState(null);
   const [selectedWorkGoals, setSelectedWorkGoals] = useState([]);
+  const [selectedWorkStages, setSelectedWorkStages] = useState([]);
   const [isLoadingGoals, setIsLoadingGoals] = useState(false);
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'stages'
 
   // State biểu mẫu Tạo / Sửa Goal trong Work đang chọn
   const [showGoalForm, setShowGoalForm] = useState(false);
@@ -145,6 +156,15 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
   const [goalColor, setGoalColor] = useState('#EF4444');
   const [goalRange, setGoalRange] = useState(1);
   const [goalDescription, setGoalDescription] = useState('');
+  const [goalStageId, setGoalStageId] = useState('');
+
+  // State Modal Chặng (Stage)
+  const [showStageModal, setShowStageModal] = useState(false);
+  const [editingStage, setEditingStage] = useState(null);
+  const [isAutoAssigning, setIsAutoAssigning] = useState(false);
+
+  // State Modal AI Roadmap
+  const [showAiModal, setShowAiModal] = useState(false);
 
   // Lấy danh sách đầu việc, hỗ trợ gửi request mỗi khi debouncedSearch thay đổi sau 300ms
   useEffect(() => {
@@ -252,6 +272,8 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
 
       if (!isAuthenticated) {
         setSelectedWorkGoals(DEMO_GOALS_MAP[workId] || []);
+        setSelectedWorkStages([]);
+        setViewMode('list');
         return;
       }
 
@@ -260,7 +282,15 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
         setErrorMsg('');
         const response = await fetchGoals(workId);
         const goalsList = response?.data || [];
+        const stagesList = response?.stages || [];
         setSelectedWorkGoals(goalsList);
+        setSelectedWorkStages(stagesList);
+
+        if (stagesList.length > 0) {
+          setViewMode('stages');
+        } else {
+          setViewMode('list');
+        }
 
         // Đồng bộ lại tiến độ & số lượng goal trên thẻ Work vắn tắt
         const total = goalsList.length;
@@ -438,6 +468,7 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
     setGoalColor('#EF4444');
     setGoalRange(1);
     setGoalDescription('');
+    setGoalStageId('');
     setShowGoalForm(true);
   };
 
@@ -452,6 +483,7 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
     setGoalColor(goal.goal_color || '#EF4444');
     setGoalRange(goal.goal_range || 1);
     setGoalDescription(goal.goal_description || '');
+    setGoalStageId(goal.stage_id || '');
     setShowGoalForm(true);
   };
 
@@ -479,6 +511,7 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
         goal_color: goalColor,
         goal_range: Number(goalRange) || 1,
         goal_description: goalDescription.trim(),
+        stage_id: goalStageId || null,
       };
 
       if (editingGoalId) {
@@ -493,6 +526,136 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
       setEditingGoalId(null);
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Không thể lưu mục tiêu.');
+    }
+  };
+
+  /**
+   * Mở modal thêm chặng mới.
+   */
+  const handleOpenCreateStage = () => {
+    setEditingStage(null);
+    setShowStageModal(true);
+  };
+
+  /**
+   * Mở modal sửa thông tin một chặng.
+   * @param {object} stage - Đối tượng chặng cần sửa
+   */
+  const handleEditStage = (stage) => {
+    setEditingStage(stage);
+    setShowStageModal(true);
+  };
+
+  /**
+   * Lưu thông tin chặng (tạo mới hoặc cập nhật).
+   * @param {object} stageData - Dữ liệu chặng
+   */
+  const handleSaveStage = async (stageData) => {
+    if (!isAuthenticated) {
+      onOpenAuth('login');
+      return;
+    }
+
+    try {
+      if (editingStage) {
+        const updated = await updateStage(selectedWorkId, editingStage._id, stageData);
+        setSelectedWorkStages((prev) =>
+          prev.map((s) => (s._id === updated._id ? updated : s))
+        );
+      } else {
+        const created = await createStage(selectedWorkId, stageData);
+        setSelectedWorkStages((prev) => [...prev, created]);
+      }
+    } catch {
+      setErrorMsg('Không thể lưu thông tin chặng.');
+    }
+  };
+
+  /**
+   * Xóa một chặng khỏi đầu việc.
+   * @param {string} stageId - ID chặng cần xóa
+   */
+  const handleDeleteStage = async (stageId) => {
+    if (!isAuthenticated) {
+      onOpenAuth('login');
+      return;
+    }
+    if (
+      !window.confirm(
+        'Bạn có chắc muốn xóa chặng này? Các mục tiêu bên trong sẽ được chuyển về mục tiêu chung.'
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteStage(selectedWorkId, stageId);
+      setSelectedWorkStages((prev) => prev.filter((s) => s._id !== stageId));
+      setSelectedWorkGoals((prev) =>
+        prev.map((g) =>
+          g.stage_id && g.stage_id.toString() === stageId.toString()
+            ? { ...g, stage_id: null }
+            : g
+        )
+      );
+    } catch {
+      setErrorMsg('Không thể xóa chặng.');
+    }
+  };
+
+  /**
+   * Tự động phân bổ mục tiêu vào các chặng theo mốc ngày.
+   */
+  const handleAutoAssignGoals = async () => {
+    if (!isAuthenticated) {
+      onOpenAuth('login');
+      return;
+    }
+
+    try {
+      setIsAutoAssigning(true);
+      const res = await autoAssignGoals(selectedWorkId);
+      if (res?.goals) {
+        setSelectedWorkGoals(res.goals);
+      }
+      if (res?.stages) {
+        setSelectedWorkStages(res.stages);
+      }
+    } catch {
+      setErrorMsg('Không thể tự động gom mục tiêu vào chặng.');
+    } finally {
+      setIsAutoAssigning(false);
+    }
+  };
+
+  /**
+   * Mở form thêm goal mới gắn trực tiếp vào một chặng chỉ định.
+   * @param {string} stageId - ID chặng
+   */
+  const handleCreateGoalInStage = (stageId) => {
+    setEditingGoalId(null);
+    setGoalName('');
+    setGoalEndDate(toInputDateValue(new Date()));
+    setGoalColor('#EF4444');
+    setGoalRange(1);
+    setGoalDescription('');
+    setGoalStageId(stageId);
+    setShowGoalForm(true);
+  };
+
+  /**
+   * Xử lý sau khi người dùng chấp nhận áp dụng lộ trình do AI tạo ra.
+   * @param {object} createdWork - Đầu việc vừa được tạo
+   */
+  const handleRoadmapApplied = async (createdWork) => {
+    if (!createdWork) return;
+    try {
+      const data = await fetchWorks(debouncedSearch);
+      setWorks(data);
+      await handleSelectWork(createdWork._id);
+      setViewMode('stages');
+    } catch {
+      setErrorMsg('Đã tạo môn học nhưng không thể tải lại danh sách.');
     }
   };
 
@@ -554,9 +717,24 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
             <strong>bấm vào một đầu việc cụ thể</strong> để tải chi tiết các Goal của nó.
           </p>
         </div>
-        <button type="button" className={styles.btnPrimary} onClick={handleOpenCreateWork}>
-          + Tạo Đầu việc mới
-        </button>
+        <div className={styles.headerButtonRow}>
+          <button
+            type="button"
+            className={styles.btnAiRoadmap}
+            onClick={() => {
+              if (!isAuthenticated) {
+                onOpenAuth('login');
+                return;
+              }
+              setShowAiModal(true);
+            }}
+          >
+            ✨ AI Sinh Lộ Trình
+          </button>
+          <button type="button" className={styles.btnPrimary} onClick={handleOpenCreateWork}>
+            + Tạo Đầu việc mới
+          </button>
+        </div>
       </div>
 
       {!isAuthenticated && (
@@ -880,6 +1058,24 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
                 Tổng cộng {selectedWorkGoals.length} mục tiêu • Hoàn thành{' '}
                 {activeWork.progress_percentage ?? 0}%
               </p>
+
+              {/* BỘ CHUYỂN ĐỔI CHẾ ĐỘ XEM: DANH SÁCH PHẲNG vs DẠNG CHẶNG ACCORDION */}
+              <div className={styles.viewModeSwitcher}>
+                <button
+                  type="button"
+                  className={`${styles.viewBtn} ${viewMode === 'list' ? styles.activeView : ''}`}
+                  onClick={() => setViewMode('list')}
+                >
+                  📋 Danh sách phẳng
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.viewBtn} ${viewMode === 'stages' ? styles.activeView : ''}`}
+                  onClick={() => setViewMode('stages')}
+                >
+                  🪜 Dạng Chặng Accordion ({selectedWorkStages.length})
+                </button>
+              </div>
             </div>
             <div className={styles.detailActions}>
               <button
@@ -942,6 +1138,24 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
                       ))}
                     </select>
                   </div>
+
+                  {selectedWorkStages.length > 0 && (
+                    <div className={styles.fieldGroup}>
+                      <label>Gán vào Chặng</label>
+                      <select
+                        className={styles.inputField}
+                        value={goalStageId}
+                        onChange={(e) => setGoalStageId(e.target.value)}
+                      >
+                        <option value="">-- Mục tiêu chung / Chưa phân chặng --</option>
+                        {selectedWorkStages.map((s) => (
+                          <option key={s._id} value={s._id}>
+                            Chặng {s.stage_order || 1}: {s.stage_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.formRowSecond}>
@@ -989,11 +1203,25 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
             </div>
           )}
 
-          {/* DANH SÁCH GOALS ĐÃ FETCH */}
+          {/* DANH SÁCH GOALS ĐÃ FETCH HOẶC HIỂN THỊ THEO DẠNG CHẶNG ACCORDION */}
           {isLoadingGoals ? (
             <div className={styles.loadingGoals}>
               ⏳ Đang gửi fetch lấy chi tiết các Goal của &quot;{activeWork.work_name}&quot;...
             </div>
+          ) : viewMode === 'stages' ? (
+            <StageAccordion
+              stages={selectedWorkStages}
+              goals={selectedWorkGoals}
+              onToggleGoalCheck={handleToggleGoalCheck}
+              onEditGoal={handleOpenEditGoal}
+              onDeleteGoal={handleDeleteGoal}
+              onCreateGoalInStage={handleCreateGoalInStage}
+              onOpenCreateStage={handleOpenCreateStage}
+              onEditStage={handleEditStage}
+              onDeleteStage={handleDeleteStage}
+              onAutoAssign={handleAutoAssignGoals}
+              isAutoAssigning={isAutoAssigning}
+            />
           ) : selectedWorkGoals.length === 0 ? (
             <div className={styles.emptyGoals}>
               <p>Đầu việc này hiện chưa có mục tiêu (Goal) nào.</p>
@@ -1072,6 +1300,22 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
           )}
         </section>
       )}
+
+      {/* MODAL TẠO LỘ TRÌNH THÔNG MINH BẰNG AI */}
+      <AIRoadmapModal
+        isOpen={showAiModal}
+        onClose={() => setShowAiModal(false)}
+        onRoadmapApplied={handleRoadmapApplied}
+      />
+
+      {/* MODAL THÊM / SỬA CHẶNG */}
+      <StageModal
+        isOpen={showStageModal}
+        onClose={() => setShowStageModal(false)}
+        onSave={handleSaveStage}
+        initialData={editingStage}
+        defaultOrder={selectedWorkStages.length + 1}
+      />
     </div>
   );
 }
