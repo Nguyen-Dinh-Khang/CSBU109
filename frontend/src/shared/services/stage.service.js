@@ -61,6 +61,19 @@ export async function generateAIRoadmap(params) {
 }
 
 /**
+ * Gọi API tinh chỉnh lộ trình AI theo phản hồi / góp ý của người dùng.
+ * @param {object} params - Gồm currentRoadmap và feedbackComment
+ * @returns {Promise<object>} - Lộ trình mới sau khi tinh chỉnh
+ */
+export async function refineAIRoadmap({ currentRoadmap, feedbackComment }) {
+  const response = await authApi.post('/api/works/ai-roadmap/refine', {
+    currentRoadmap,
+    feedbackComment,
+  });
+  return response.data.data;
+}
+
+/**
  * Gọi API lưu trọn gói một lộ trình AI thành đầu việc chính thức trong tài khoản.
  * @param {object} roadmapData - Lộ trình hoàn chỉnh
  * @returns {Promise<object>} - Đầu việc vừa tạo

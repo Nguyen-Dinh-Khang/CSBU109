@@ -18,7 +18,10 @@ router.use(authenticateToken);
 /** 1. AI Roadmap: Sinh lộ trình học tập thông minh qua Gemini AI */
 router.post('/ai-roadmap', stageController.generateAIRoadmap);
 
-/** 2. AI Roadmap: Áp dụng lộ trình AI thành một đầu việc hoàn chỉnh */
+/** 2. AI Roadmap: Tinh chỉnh lộ trình đã sinh theo góp ý của người dùng */
+router.post('/ai-roadmap/refine', stageController.refineAIRoadmap);
+
+/** 3. AI Roadmap: Áp dụng lộ trình AI thành một đầu việc hoàn chỉnh */
 router.post('/apply-roadmap', stageController.applyAIRoadmap);
 
 /** 3. Function 1: Tạo đầu việc mới */

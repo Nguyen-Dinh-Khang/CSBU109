@@ -158,6 +158,33 @@ export async function generateAIRoadmap(req, res) {
 }
 
 /**
+ * Tiếp nhận request tinh chỉnh lộ trình AI theo góp ý / nhận xét của người dùng.
+ * @param {object} req - Request object từ Express
+ * @param {object} res - Response object từ Express
+ */
+export async function refineAIRoadmap(req, res) {
+  try {
+    const { currentRoadmap, feedbackComment } = req.body;
+
+    const refinedRoadmap = await aiService.refineRoadmapWithAI({
+      currentRoadmap,
+      feedbackComment,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Tinh chỉnh lộ trình thành công!',
+      data: refinedRoadmap,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Lỗi khi tinh chỉnh lộ trình AI.',
+    });
+  }
+}
+
+/**
  * Tiếp nhận request áp dụng lộ trình AI vào tài khoản (tạo Work + Stages + Goals).
  * @param {object} req - Request object từ Express
  * @param {object} res - Response object từ Express
