@@ -277,10 +277,119 @@
   gap: 0.5rem;
   font-size: 0.84rem;
   color: $color-text-main;
+  flex-wrap: wrap;
 
   .bullet {
     color: #6366f1;
     font-weight: 800;
+  }
+}
+
+.goalScopeTag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.12rem 0.45rem;
+  background: var(--bg-secondary, #f1f5f9);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 4px;
+  color: $color-text-muted;
+  margin-left: auto;
+}
+
+/* KHUNG GÓP Ý & TINH CHỈNH VỚI AI */
+.refineSection {
+  margin-top: 1.25rem;
+  padding: 1.15rem 1.25rem;
+  background: var(--bg-secondary, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.refineHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+
+  .refineIcon {
+    font-size: 1.3rem;
+    line-height: 1;
+  }
+
+  h5 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: $color-text-main;
+  }
+
+  p {
+    margin: 0.15rem 0 0;
+    font-size: 0.8rem;
+    color: $color-text-muted;
+    line-height: 1.4;
+  }
+}
+
+.refineForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.refineTextarea {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  background: var(--bg-card, #ffffff);
+  color: $color-text-main;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    background: var(--bg-secondary, #f1f5f9);
+  }
+}
+
+.btnRefine {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  @include mobile {
+    width: 100%;
+    align-self: stretch;
   }
 }
 

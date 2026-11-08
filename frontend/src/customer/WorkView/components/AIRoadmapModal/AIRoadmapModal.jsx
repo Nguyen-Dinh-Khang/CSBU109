@@ -1,15 +1,27 @@
 /**
  * TÊN FILE: AIRoadmapModal.jsx
- * CÔNG DỤNG: Hộp thoại tạo lộ trình thông minh qua Gemini AI, hiển thị xem trước các chặng và mục tiêu gợi ý, cho phép người dùng lưu thành đầu việc thật.
+ * CÔNG DỤNG: Hộp thoại tạo lộ trình thông minh qua Gemini AI, hiển thị xem trước các chặng và mục tiêu gợi ý, cho phép người dùng gửi phản hồi comment để AI tinh chỉnh trước khi lưu thành đầu việc thật.
  * PHẠM VI DÙNG: Phân hệ Customer (WorkView).
  */
 
 import { useState } from 'react';
-import { generateAIRoadmap, applyAIRoadmap } from '../../../../shared/services/stage.service.js';
+import { generateAIRoadmap, refineAIRoadmap, applyAIRoadmap } from '../../../../shared/services/stage.service.js';
 import styles from './AIRoadmapModal.module.scss';
 
+const DURATION_OPTIONS = [
+  { value: 2, label: '2 tuần (Nửa tháng)' },
+  { value: 4, label: '4 tuần (1 tháng)' },
+  { value: 6, label: '6 tuần (1.5 tháng)' },
+  { value: 8, label: '8 tuần (2 tháng)' },
+  { value: 12, label: '12 tuần (3 tháng - 1 học kỳ)' },
+  { value: 16, label: '16 tuần (4 tháng)' },
+  { value: 24, label: '24 tuần (6 tháng - Nửa năm)' },
+  { value: 36, label: '36 tuần (9 tháng)' },
+  { value: 52, label: '52 tuần (1 năm toàn diện)' },
+];
+
 /**
- * Component Modal tạo lộ trình học tập bằng AI.
+ * Component Modal tạo lộ trình học tập bằng AI với chu trình phản hồi tinh chỉnh (Feedback Loop).
  * @param {object} props - Gồm isOpen, onClose, onRoadmapApplied
  */
 export function AIRoadmapModal({ isOpen, onClose, onRoadmapApplied }) {
@@ -22,6 +34,10 @@ export function AIRoadmapModal({ isOpen, onClose, onRoadmapApplied }) {
   const [previewData, setPreviewData] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // State phản hồi comment để AI tinh chỉnh
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [isRefining, setIsRefining] = useState(false);
 
   if (!isOpen) return null;
 
@@ -54,6 +70,30 @@ export function AIRoadmapModal({ isOpen, onClose, onRoadmapApplied }) {
   };
 
   /**
+   * Gửi phản hồi comment để Gemini AI tinh chỉnh lại lộ trình đã sinh.
+   * @param {object} e - Form event
+   */
+  const handleRefine = async (e) => {
+    e.preventDefault();
+    if (!feedbackComment.trim() || !previewData) return;
+
+    try {
+      setIsRefining(true);
+      setErrorMsg('');
+      const refined = await refineAIRoadmap({
+        currentRoadmap: previewData,
+        feedbackComment: feedbackComment.trim(),
+      });
+      setPreviewData(refined);
+      setFeedbackComment('');
+    } catch (err) {
+      setErrorMsg(err.message || 'Không thể tinh chỉnh lộ trình. Vui lòng thử lại.');
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  /**
    * Lưu lộ trình xem trước vào cơ sở dữ liệu của người dùng.
    */
   const handleApply = async () => {
@@ -77,8 +117,10 @@ export function AIRoadmapModal({ isOpen, onClose, onRoadmapApplied }) {
    */
   const handleClose = () => {
     setPreviewData(null);
+    setFeedbackComment('');
     setErrorMsg('');
     setIsLoading(false);
+    setIsRefining(false);
     setIsApplying(false);
     onClose();
   };
@@ -143,11 +185,41 @@ export function AIRoadmapModal({ isOpen, onClose, onRoadmapApplied }) {
                         <div key={gIdx} className={styles.previewGoalItem}>
                           <span className={styles.bullet}>•</span>
                           <span>{g.goal_name}</span>
+                          <span className={styles.goalScopeTag}>Quy mô {g.goal_range || 3}/5</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* KHUNG GÓP Ý & TINH CHỈNH LỘ TRÌNH VỚI AI */}
+              <div className={styles.refineSection}>
+                <div className={styles.refineHeader}>
+                  <span className={styles.refineIcon}>💬</span>
+                  <div>
+                    <h5>Góp ý & Tinh chỉnh lộ trình với AI</h5>
+                    <p>Chưa hoàn toàn ưng ý? Gửi nhận xét để Gemini AI điều chỉnh lại chặng và mục tiêu ngay lập tức.</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleRefine} className={styles.refineForm}>
+                  <textarea
+                    className={styles.refineTextarea}
+                    rows={2}
+                    placeholder="Ví dụ: Thêm 1 chặng làm đồ án thực hành ở cuối, kéo dài thời gian chặng 2, giảm bớt lý thuyết..."
+                    value={feedbackComment}
+                    onChange={(e) => setFeedbackComment(e.target.value)}
+                    disabled={isRefining || isApplying}
+                  />
+                  <button
+                    type="submit"
+                    className={styles.btnRefine}
+                    disabled={!feedbackComment.trim() || isRefining || isApplying}
+                  >
+                    {isRefining ? '⏳ Đang tinh chỉnh...' : '✨ Tinh chỉnh theo góp ý'}
+                  </button>
+                </form>
               </div>
             </div>
           ) : (
@@ -170,15 +242,15 @@ export function AIRoadmapModal({ isOpen, onClose, onRoadmapApplied }) {
 
               <div className={styles.rowTwoCols}>
                 <div className={styles.fieldGroup}>
-                  <label>Thời lượng học tập (tuần)</label>
+                  <label>Thời lượng học tập</label>
                   <select
                     className={styles.inputField}
                     value={weeks}
                     onChange={(e) => setWeeks(Number(e.target.value))}
                   >
-                    {[2, 4, 6, 8, 10, 12, 16].map((w) => (
-                      <option key={w} value={w}>
-                        {w} tuần ({Math.round((w * 7) / 30)} tháng)
+                    {DURATION_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
                       </option>
                     ))}
                   </select>
@@ -220,15 +292,15 @@ export function AIRoadmapModal({ isOpen, onClose, onRoadmapApplied }) {
                 type="button"
                 className={styles.btnSecondary}
                 onClick={() => setPreviewData(null)}
-                disabled={isApplying}
+                disabled={isApplying || isRefining}
               >
-                ← Chỉnh sửa yêu cầu
+                ← Tạo lộ trình khác
               </button>
               <button
                 type="button"
                 className={styles.btnPrimary}
                 onClick={handleApply}
-                disabled={isApplying}
+                disabled={isApplying || isRefining}
               >
                 {isApplying ? '⏳ Đang lưu vào hệ thống...' : '✓ Chấp nhận & Tạo Môn Học'}
               </button>
