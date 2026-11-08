@@ -9,6 +9,44 @@ import bcrypt from 'bcryptjs';
 import { getNextSequenceValue } from './Counter.js';
 
 /**
+ * Schema cho giai đoạn / chặng (Stage Subdocument) thuộc một đầu việc (Work).
+ */
+const stageSchema = new mongoose.Schema(
+  {
+    stage_name: {
+      type: String,
+      required: [true, 'Tên chặng là bắt buộc'],
+      trim: true,
+    },
+    stage_order: {
+      type: Number,
+      default: 1,
+    },
+    stage_start_date: {
+      type: Date,
+      default: null,
+    },
+    stage_end_date: {
+      type: Date,
+      default: null,
+    },
+    stage_description: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    stage_color: {
+      type: String,
+      default: '#3B82F6',
+      trim: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+/**
  * Schema cho mục tiêu con (Goal Subdocument) thuộc một đầu việc (Work).
  */
 const goalSchema = new mongoose.Schema(
@@ -41,6 +79,10 @@ const goalSchema = new mongoose.Schema(
     goal_check: {
       type: Boolean,
       default: false,
+    },
+    stage_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
     },
   },
   {
@@ -81,6 +123,7 @@ const workSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    stages: [stageSchema],
     goals: [goalSchema],
   },
   {
