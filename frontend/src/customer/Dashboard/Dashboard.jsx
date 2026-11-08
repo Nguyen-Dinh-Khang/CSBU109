@@ -215,7 +215,7 @@ export function Dashboard({ onOpenAuth, onNavigateTab, onSelectWorkFromDashboard
                       <div className={styles.goalTitle}>{goal.goal_name}</div>
                       <div className={styles.goalMeta}>
                         <span className={styles.workTag}>📁 {goal.work_name}</span>
-                        <span>• Độ ưu tiên: Mức {goal.goal_range}</span>
+                        <span>• Quy mô: {goal.goal_range}/5</span>
                       </div>
                     </div>
                     <div className={styles.goalRight}>
@@ -384,7 +384,7 @@ export function Dashboard({ onOpenAuth, onNavigateTab, onSelectWorkFromDashboard
                         <div className={styles.goalTitle}>{goal.goal_name}</div>
                         <div className={styles.goalMeta}>
                           <span className={styles.workTag}>📁 {goal.work_name}</span>
-                          {goal.goal_range && <span>• Độ lớn: {goal.goal_range}</span>}
+                          {goal.goal_range && <span>• Quy mô: {goal.goal_range}/5</span>}
                         </div>
                       </div>
                       <div className={styles.goalRight}>
