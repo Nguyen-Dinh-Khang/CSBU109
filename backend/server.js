@@ -38,7 +38,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
         return callback(null, true);
       }
-      return callback(null, true);
+      return callback(new Error('Bị chặn bởi chính sách CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

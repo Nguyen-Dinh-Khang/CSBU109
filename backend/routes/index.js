@@ -11,7 +11,6 @@ import dateRoutes from './customer/date.routes.js';
 import dashboardRoutes from './customer/dashboard.routes.js';
 import scheduleRoutes from './customer/schedule.routes.js';
 import { getDBStatus } from '../config/db.js';
-import { Item } from '../models/Item.js';
 
 const router = express.Router();
 
@@ -41,23 +40,5 @@ router.get('/status', (req, res) => {
   });
 });
 
-/** 7. Tuyến đường items mẫu (kế thừa) */
-router.get('/items', async (req, res) => {
-  const dbStatus = getDBStatus();
-  if (!dbStatus.isConnected) {
-    return res.status(200).json({
-      success: false,
-      message: 'MongoDB chưa kết nối.',
-      items: [],
-    });
-  }
-
-  try {
-    const items = await Item.find().sort({ createdAt: -1 });
-    res.json({ success: true, items });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
 
 export default router;
