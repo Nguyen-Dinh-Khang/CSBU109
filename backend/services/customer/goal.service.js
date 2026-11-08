@@ -39,7 +39,7 @@ export async function createGoal(userId, workId, goalData) {
     throw error;
   }
 
-  const { goal_name, goal_end_date, goal_color, goal_range, goal_description } = goalData;
+  const { goal_name, goal_end_date, goal_color, goal_range, goal_description, stage_id } = goalData;
 
   const newGoal = {
     goal_name,
@@ -48,6 +48,7 @@ export async function createGoal(userId, workId, goalData) {
     goal_range: Number(goal_range) || 1,
     goal_description: goal_description || '',
     goal_check: false,
+    stage_id: stage_id || null,
   };
 
   work.goals.push(newGoal);
@@ -78,9 +79,14 @@ export async function getGoalsByWorkId(userId, workId) {
     (a, b) => new Date(a.goal_end_date) - new Date(b.goal_end_date)
   );
 
+  const sortedStages = Array.isArray(work.stages)
+    ? [...work.stages].sort((a, b) => (a.stage_order || 1) - (b.stage_order || 1))
+    : [];
+
   return {
     work_id: work._id,
     work_name: work.work_name,
+    stages: sortedStages,
     goals: sortedGoals,
   };
 }
@@ -116,6 +122,7 @@ export async function updateGoal(userId, workId, goalId, updateData) {
     'goal_color',
     'goal_range',
     'goal_description',
+    'stage_id',
   ];
 
   allowedFields.forEach((field) => {
@@ -124,6 +131,8 @@ export async function updateGoal(userId, workId, goalId, updateData) {
         goal[field] = new Date(updateData[field]);
       } else if (field === 'goal_range') {
         goal[field] = Number(updateData[field]);
+      } else if (field === 'stage_id') {
+        goal[field] = updateData[field] ? updateData[field] : null;
       } else {
         goal[field] = updateData[field];
       }

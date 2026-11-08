@@ -61,6 +61,7 @@ export async function getGoalsByWorkId(req, res) {
       success: true,
       work_id: result.work_id,
       work_name: result.work_name,
+      stages: result.stages || [],
       data: result.goals,
     });
   } catch (error) {
