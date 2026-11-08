@@ -1,0 +1,312 @@
+/**
+ * TÊN FILE: GoalModal.module.scss
+ * CÔNG DỤNG: Định dạng SCSS Module cho hộp thoại nổi GoalModal, tối ưu cho cả desktop và mobile (bottom-sheet).
+ * PHẠM VI DÙNG: Phân hệ Customer (WorkView).
+ */
+
+@use '../../../../app/styles/variables' as *;
+@use '../../../../app/styles/mixins' as *;
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+
+  @include mobile {
+    align-items: flex-end;
+    padding: 0;
+  }
+}
+
+.modalBox {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 580px;
+  box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: popIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  max-height: 92vh;
+
+  @include mobile {
+    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+    animation: slideUpMobile 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slideUpMobile {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalHeader {
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-secondary, #f8fafc);
+
+  .titleGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    .headerIcon {
+      font-size: 1.3rem;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: $color-text-main;
+    }
+  }
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: $color-text-muted;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
+}
+
+.errorAlert {
+  margin: 1rem 1.5rem 0;
+  padding: 0.65rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.modalForm {
+  padding: 1.4rem 1.5rem 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  overflow-y: auto;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: $color-text-main;
+  }
+}
+
+.labelWithHint {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+
+  .hintText {
+    font-size: 0.78rem;
+    color: $color-text-muted;
+  }
+}
+
+.rowTwoCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inputField,
+.textAreaField {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 8px;
+  font-size: 0.92rem;
+  background: var(--bg-card, #ffffff);
+  color: $color-text-main;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+}
+
+.textAreaField {
+  resize: vertical;
+  min-height: 70px;
+}
+
+/* THANG ĐO QUY MÔ 1 - 5 */
+.scopeSelector {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+
+  @include mobile {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.scopePill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.35rem;
+  border: 1px solid var(--border-color, #e2e8f0);
+  background: var(--bg-secondary, #f8fafc);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  .scopeValue {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: $color-text-main;
+  }
+
+  .scopeDesc {
+    font-size: 0.68rem;
+    color: $color-text-muted;
+    text-align: center;
+    line-height: 1.2;
+    margin-top: 0.2rem;
+  }
+
+  &:hover {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  &.selected {
+    border-color: #3b82f6;
+    background: #3b82f6;
+
+    .scopeValue,
+    .scopeDesc {
+      color: #ffffff;
+    }
+  }
+}
+
+/* COLOR PICKER */
+.colorPickerRow {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.colorSwatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: scale(1.15);
+  }
+
+  &.selectedSwatch {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px #3b82f6;
+    transform: scale(1.15);
+  }
+}
+
+/* ACTIONS */
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.6rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+
+  .btnSecondary {
+    padding: 0.6rem 1.15rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    background: transparent;
+    color: $color-text-main;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: var(--bg-secondary, #f1f5f9);
+    }
+  }
+
+  .btnPrimary {
+    padding: 0.6rem 1.4rem;
+    border-radius: 8px;
+    border: none;
+    background: #3b82f6;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}

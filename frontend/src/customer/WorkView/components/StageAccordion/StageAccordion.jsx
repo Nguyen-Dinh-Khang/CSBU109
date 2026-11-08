@@ -212,7 +212,7 @@ export function StageAccordion({
                                 <div className={styles.goalItemDesc}>{goal.goal_description}</div>
                               )}
                               <div className={styles.goalItemMeta}>
-                                <span>⚡ Mức độ: {goal.goal_range || 1}</span>
+                                <span>⚡ Quy mô: {goal.goal_range || 1}/5</span>
                                 <span>• Hạn: {formatDisplayDate(goal.goal_end_date)}</span>
                                 {!goal.goal_check && (
                                   <span className={`${styles.deadlineTag} ${styles[badge.status]}`}>
@@ -330,7 +330,7 @@ export function StageAccordion({
                             <div className={styles.goalItemDesc}>{goal.goal_description}</div>
                           )}
                           <div className={styles.goalItemMeta}>
-                            <span>⚡ Mức độ: {goal.goal_range || 1}</span>
+                            <span>⚡ Quy mô: {goal.goal_range || 1}/5</span>
                             <span>• Hạn: {formatDisplayDate(goal.goal_end_date)}</span>
                             {!goal.goal_check && (
                               <span className={`${styles.deadlineTag} ${styles[badge.status]}`}>

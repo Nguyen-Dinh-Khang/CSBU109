@@ -27,6 +27,7 @@ import {
 import { StageAccordion } from './components/StageAccordion/StageAccordion.jsx';
 import { StageModal } from './components/StageModal/StageModal.jsx';
 import { AIRoadmapModal } from './components/AIRoadmapModal/AIRoadmapModal.jsx';
+import { GoalModal } from './components/GoalModal/GoalModal.jsx';
 import {
   formatDisplayDate,
   toInputDateValue,
@@ -148,15 +149,10 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
   const [isLoadingGoals, setIsLoadingGoals] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'stages'
 
-  // State biểu mẫu Tạo / Sửa Goal trong Work đang chọn
-  const [showGoalForm, setShowGoalForm] = useState(false);
-  const [editingGoalId, setEditingGoalId] = useState(null);
-  const [goalName, setGoalName] = useState('');
-  const [goalEndDate, setGoalEndDate] = useState('');
-  const [goalColor, setGoalColor] = useState('#EF4444');
-  const [goalRange, setGoalRange] = useState(1);
-  const [goalDescription, setGoalDescription] = useState('');
-  const [goalStageId, setGoalStageId] = useState('');
+  // State Modal nổi Tạo / Sửa Goal trong Work đang chọn
+  const [showGoalModal, setShowGoalModal] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(null);
+  const [targetGoalStageId, setTargetGoalStageId] = useState(null);
 
   // State Modal Chặng (Stage)
   const [showStageModal, setShowStageModal] = useState(false);
@@ -267,8 +263,9 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
   const handleSelectWork = useCallback(
     async (workId) => {
       setSelectedWorkId(workId);
-      setShowGoalForm(false);
-      setEditingGoalId(null);
+      setShowGoalModal(false);
+      setEditingGoal(null);
+      setTargetGoalStageId(null);
 
       if (!isAuthenticated) {
         setSelectedWorkGoals(DEMO_GOALS_MAP[workId] || []);
@@ -459,73 +456,50 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
   };
 
   /**
-   * Mở form thêm mục tiêu mới vào Work đang chọn.
+   * Mở modal thêm mục tiêu mới vào Work đang chọn.
    */
   const handleOpenCreateGoal = () => {
-    setEditingGoalId(null);
-    setGoalName('');
-    setGoalEndDate(toInputDateValue(new Date()));
-    setGoalColor('#EF4444');
-    setGoalRange(1);
-    setGoalDescription('');
-    setGoalStageId('');
-    setShowGoalForm(true);
+    setEditingGoal(null);
+    setTargetGoalStageId(null);
+    setShowGoalModal(true);
   };
 
   /**
-   * Mở form chỉnh sửa một mục tiêu cụ thể.
+   * Mở modal chỉnh sửa một mục tiêu cụ thể.
    * @param {object} goal - Mục tiêu cần chỉnh sửa
    */
   const handleOpenEditGoal = (goal) => {
-    setEditingGoalId(goal._id);
-    setGoalName(goal.goal_name || '');
-    setGoalEndDate(toInputDateValue(goal.goal_end_date));
-    setGoalColor(goal.goal_color || '#EF4444');
-    setGoalRange(goal.goal_range || 1);
-    setGoalDescription(goal.goal_description || '');
-    setGoalStageId(goal.stage_id || '');
-    setShowGoalForm(true);
+    setEditingGoal(goal);
+    setTargetGoalStageId(goal.stage_id || null);
+    setShowGoalModal(true);
   };
 
   /**
-   * Lưu mục tiêu (thêm mới hoặc sửa) vào Work đang chọn.
-   * @param {object} e - Form submit event
+   * Lưu mục tiêu (thêm mới hoặc sửa) vào Work đang chọn thông qua GoalModal.
+   * @param {object} goalPayload - Dữ liệu mục tiêu từ GoalModal
    */
-  const handleSaveGoal = async (e) => {
-    e.preventDefault();
+  const handleSaveGoal = async (goalPayload) => {
     if (!isAuthenticated) {
       onOpenAuth('login');
       return;
     }
 
-    if (!goalName.trim() || !goalEndDate) {
-      setErrorMsg('Vui lòng nhập tên mục tiêu và hạn chót.');
-      return;
-    }
-
     try {
       setErrorMsg('');
-      const payload = {
-        goal_name: goalName.trim(),
-        goal_end_date: goalEndDate,
-        goal_color: goalColor,
-        goal_range: Number(goalRange) || 1,
-        goal_description: goalDescription.trim(),
-        stage_id: goalStageId || null,
-      };
-
-      if (editingGoalId) {
-        await updateGoal(selectedWorkId, editingGoalId, payload);
+      if (editingGoal && editingGoal._id) {
+        await updateGoal(selectedWorkId, editingGoal._id, goalPayload);
       } else {
-        await createGoal(selectedWorkId, payload);
+        await createGoal(selectedWorkId, goalPayload);
       }
 
       // Fetch lại chi tiết tất cả các goal của Work này để đồng bộ chuẩn xác
       await handleSelectWork(selectedWorkId);
-      setShowGoalForm(false);
-      setEditingGoalId(null);
+      setShowGoalModal(false);
+      setEditingGoal(null);
+      setTargetGoalStageId(null);
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Không thể lưu mục tiêu.');
+      throw err;
     }
   };
 
@@ -629,18 +603,13 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
   };
 
   /**
-   * Mở form thêm goal mới gắn trực tiếp vào một chặng chỉ định.
+   * Mở modal thêm goal mới gắn trực tiếp vào một chặng chỉ định.
    * @param {string} stageId - ID chặng
    */
   const handleCreateGoalInStage = (stageId) => {
-    setEditingGoalId(null);
-    setGoalName('');
-    setGoalEndDate(toInputDateValue(new Date()));
-    setGoalColor('#EF4444');
-    setGoalRange(1);
-    setGoalDescription('');
-    setGoalStageId(stageId);
-    setShowGoalForm(true);
+    setEditingGoal(null);
+    setTargetGoalStageId(stageId);
+    setShowGoalModal(true);
   };
 
   /**
@@ -1095,114 +1064,6 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
             </div>
           </div>
 
-          {/* FORM THÊM / SỬA GOAL */}
-          {showGoalForm && (
-            <div className={styles.goalFormBox}>
-              <h3 className={styles.goalFormTitle}>
-                {editingGoalId ? 'Chỉnh sửa Mục tiêu (Goal)' : 'Thêm Mục tiêu (Goal) mới'}
-              </h3>
-              <form onSubmit={handleSaveGoal}>
-                <div className={styles.formGrid}>
-                  <div className={styles.fieldGroup}>
-                    <label>Tên mục tiêu *</label>
-                    <input
-                      type="text"
-                      className={styles.inputField}
-                      placeholder="Nhập tên mục tiêu cụ thể..."
-                      value={goalName}
-                      onChange={(e) => setGoalName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className={styles.fieldGroup}>
-                    <label>Hạn chót (Deadline) *</label>
-                    <input
-                      type="date"
-                      className={styles.inputField}
-                      value={goalEndDate}
-                      onChange={(e) => setGoalEndDate(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className={styles.fieldGroup}>
-                    <label>Độ ưu tiên / Độ lớn (1 - 5)</label>
-                    <select
-                      className={styles.inputField}
-                      value={goalRange}
-                      onChange={(e) => setGoalRange(Number(e.target.value))}
-                    >
-                      {[1, 2, 3, 4, 5].map((lv) => (
-                        <option key={lv} value={lv}>
-                          Mức {lv} {lv === 5 ? '(Rất quan trọng)' : lv === 1 ? '(Nhẹ)' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {selectedWorkStages.length > 0 && (
-                    <div className={styles.fieldGroup}>
-                      <label>Gán vào Chặng</label>
-                      <select
-                        className={styles.inputField}
-                        value={goalStageId}
-                        onChange={(e) => setGoalStageId(e.target.value)}
-                      >
-                        <option value="">-- Mục tiêu chung / Chưa phân chặng --</option>
-                        {selectedWorkStages.map((s) => (
-                          <option key={s._id} value={s._id}>
-                            Chặng {s.stage_order || 1}: {s.stage_name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
-
-                <div className={styles.formRowSecond}>
-                  <div className={styles.fieldGroup}>
-                    <label>Ghi chú chi tiết</label>
-                    <input
-                      type="text"
-                      className={styles.inputField}
-                      placeholder="Mô tả các bước thực hiện..."
-                      value={goalDescription}
-                      onChange={(e) => setGoalDescription(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.fieldGroup}>
-                    <label>Màu đánh dấu</label>
-                    <div className={styles.colorPickerRow}>
-                      {COLOR_PRESETS.map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          className={`${styles.colorSwatch} ${
-                            goalColor === c ? styles.selected : ''
-                          }`}
-                          style={{ backgroundColor: c }}
-                          onClick={() => setGoalColor(c)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.formActions}>
-                  <button
-                    type="button"
-                    className={styles.btnSecondary}
-                    onClick={() => setShowGoalForm(false)}
-                  >
-                    Hủy
-                  </button>
-                  <button type="submit" className={styles.btnPrimary}>
-                    {editingGoalId ? 'Cập nhật Goal' : 'Lưu Goal'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
           {/* DANH SÁCH GOALS ĐÃ FETCH HOẶC HIỂN THỊ THEO DẠNG CHẶNG ACCORDION */}
           {isLoadingGoals ? (
             <div className={styles.loadingGoals}>
@@ -1265,7 +1126,7 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
                         <div className={styles.goalItemDesc}>{goal.goal_description}</div>
                       )}
                       <div className={styles.goalItemMeta}>
-                        <span>⚡ Độ lớn: Mức {goal.goal_range || 1}</span>
+                        <span>⚡ Quy mô: {goal.goal_range || 1}/5</span>
                         <span>• Hạn: {formatDisplayDate(goal.goal_end_date)}</span>
                         {!goal.goal_check && (
                           <span className={`${styles.deadlineTag} ${styles[badge.status]}`}>
@@ -1315,6 +1176,20 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
         onSave={handleSaveStage}
         initialData={editingStage}
         defaultOrder={selectedWorkStages.length + 1}
+      />
+
+      {/* MODAL NỔI THÊM / SỬA MỤC TIÊU (GOAL) */}
+      <GoalModal
+        isOpen={showGoalModal}
+        onClose={() => {
+          setShowGoalModal(false);
+          setEditingGoal(null);
+          setTargetGoalStageId(null);
+        }}
+        onSave={handleSaveGoal}
+        initialData={editingGoal}
+        initialStageId={targetGoalStageId}
+        stages={selectedWorkStages}
       />
     </div>
   );
