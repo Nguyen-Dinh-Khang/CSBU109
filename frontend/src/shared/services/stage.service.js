@@ -33,11 +33,11 @@ export async function updateStage(workId, stageId, updateData) {
  * Gọi API xóa một chặng khỏi đầu việc.
  * @param {string} workId - ID đầu việc
  * @param {string} stageId - ID chặng cần xóa
- * @returns {Promise<boolean>} - Trạng thái thành công
+ * @returns {Promise<object>} - Dữ liệu stages và goals sau khi xóa
  */
 export async function deleteStage(workId, stageId) {
   const response = await authApi.delete(`/api/works/${workId}/stages/${stageId}`);
-  return response.data.success;
+  return response.data.data;
 }
 
 /**

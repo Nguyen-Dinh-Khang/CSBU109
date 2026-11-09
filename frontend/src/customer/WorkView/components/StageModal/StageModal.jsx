@@ -93,6 +93,9 @@ export function StageModal({ isOpen, onClose, onSave, initialData = null, defaul
                 value={stageOrder}
                 onChange={(e) => setStageOrder(e.target.value)}
               />
+              <span className={styles.inputHint}>
+                * Chèn thứ tự ở giữa sẽ tự động +1 các chặng sau
+              </span>
             </div>
           </div>
 

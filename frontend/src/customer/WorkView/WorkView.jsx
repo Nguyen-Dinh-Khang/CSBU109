@@ -531,14 +531,20 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
     }
 
     try {
+      setErrorMsg('');
+      let res;
       if (editingStage) {
-        const updated = await updateStage(selectedWorkId, editingStage._id, stageData);
-        setSelectedWorkStages((prev) =>
-          prev.map((s) => (s._id === updated._id ? updated : s))
-        );
+        res = await updateStage(selectedWorkId, editingStage._id, stageData);
       } else {
-        const created = await createStage(selectedWorkId, stageData);
-        setSelectedWorkStages((prev) => [...prev, created]);
+        res = await createStage(selectedWorkId, stageData);
+      }
+
+      if (res?.stages) {
+        setSelectedWorkStages(res.stages);
+      }
+      if (res?.goals) {
+        setSelectedWorkGoals(res.goals);
+        syncWorkProgressFromGoals(selectedWorkId, res.goals);
       }
     } catch {
       setErrorMsg('Không thể lưu thông tin chặng.');
@@ -556,22 +562,25 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
     }
     if (
       !window.confirm(
-        'Bạn có chắc muốn xóa chặng này? Các mục tiêu bên trong sẽ được chuyển về mục tiêu chung.'
+        'Bạn có chắc muốn xóa chặng này? Các mục tiêu bên trong sẽ được tự động phân bổ lại.'
       )
     ) {
       return;
     }
 
     try {
-      await deleteStage(selectedWorkId, stageId);
-      setSelectedWorkStages((prev) => prev.filter((s) => s._id !== stageId));
-      setSelectedWorkGoals((prev) =>
-        prev.map((g) =>
-          g.stage_id && g.stage_id.toString() === stageId.toString()
-            ? { ...g, stage_id: null }
-            : g
-        )
-      );
+      setErrorMsg('');
+      const res = await deleteStage(selectedWorkId, stageId);
+      if (res?.stages) {
+        setSelectedWorkStages(res.stages);
+      } else {
+        setSelectedWorkStages((prev) => prev.filter((s) => s._id !== stageId));
+      }
+
+      if (res?.goals) {
+        setSelectedWorkGoals(res.goals);
+        syncWorkProgressFromGoals(selectedWorkId, res.goals);
+      }
     } catch {
       setErrorMsg('Không thể xóa chặng.');
     }

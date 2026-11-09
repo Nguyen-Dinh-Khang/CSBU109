@@ -32,7 +32,7 @@ export async function createStage(req, res) {
     }
 
     const userId = req.user.id || req.user._id || req.user.userId;
-    const stage = await stageService.createStage(userId, work_id, {
+    const result = await stageService.createStage(userId, work_id, {
       stage_name,
       stage_order,
       stage_start_date,
@@ -43,8 +43,8 @@ export async function createStage(req, res) {
 
     return res.status(201).json({
       success: true,
-      message: 'Tạo chặng thành công!',
-      data: stage,
+      message: 'Tạo chặng thành công! Hệ thống đã tự động sắp xếp thứ tự và gom mục tiêu vào chặng.',
+      data: result,
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
@@ -64,12 +64,12 @@ export async function updateStage(req, res) {
     const { work_id, stage_id } = req.params;
     const userId = req.user.id || req.user._id || req.user.userId;
 
-    const updatedStage = await stageService.updateStage(userId, work_id, stage_id, req.body);
+    const result = await stageService.updateStage(userId, work_id, stage_id, req.body);
 
     return res.status(200).json({
       success: true,
-      message: 'Cập nhật chặng thành công!',
-      data: updatedStage,
+      message: 'Cập nhật chặng thành công! Đã tự động đồng bộ lại thứ tự và mục tiêu.',
+      data: result,
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
@@ -89,11 +89,12 @@ export async function deleteStage(req, res) {
     const { work_id, stage_id } = req.params;
     const userId = req.user.id || req.user._id || req.user.userId;
 
-    await stageService.deleteStage(userId, work_id, stage_id);
+    const result = await stageService.deleteStage(userId, work_id, stage_id);
 
     return res.status(200).json({
       success: true,
-      message: 'Đã xóa chặng thành công. Các mục tiêu liên quan đã được chuyển về mục tiêu chung.',
+      message: 'Đã xóa chặng thành công. Các mục tiêu liên quan đã được tự động phân bổ lại.',
+      data: result,
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({

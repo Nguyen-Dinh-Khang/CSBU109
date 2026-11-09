@@ -5,6 +5,7 @@
  */
 
 import { User } from '../../models/common/User.js';
+import { assignGoalsToStagesInternal } from './stage.service.js';
 
 /**
  * Tìm kiếm thực thể người dùng theo Mongo _id hoặc numeric userId.
@@ -64,6 +65,11 @@ export async function createGoal(userId, workId, goalData) {
 
   work.goals.push(newGoal);
   work.goals_count = work.goals.length;
+
+  // Nếu người dùng không chọn thủ công chặng và đầu việc có chia chặng, tự động gom mục tiêu theo mốc ngày
+  if (!stage_id && Array.isArray(work.stages) && work.stages.length > 0) {
+    assignGoalsToStagesInternal(work);
+  }
 
   await user.save();
 
@@ -149,6 +155,11 @@ export async function updateGoal(userId, workId, goalId, updateData) {
       }
     }
   });
+
+  // Tự động phân bổ lại vào chặng nếu đổi ngày mà không truyền stage_id cố định
+  if (updateData.goal_end_date !== undefined && updateData.stage_id === undefined && Array.isArray(work.stages) && work.stages.length > 0) {
+    assignGoalsToStagesInternal(work);
+  }
 
   await user.save();
   return formatGoalResponse(goal);

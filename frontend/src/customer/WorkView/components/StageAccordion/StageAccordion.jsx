@@ -25,9 +25,14 @@ export function StageAccordion({
   onAutoAssign,
   isAutoAssigning = false,
 }) {
+  // Sắp xếp các chặng luôn theo thứ tự stage_order tăng dần
+  const sortedStages = [...stages].sort(
+    (a, b) => (Number(a.stage_order) || 1) - (Number(b.stage_order) || 1)
+  );
+
   // State quản lý chặng nào đang được mở rộng (null hoặc stageId hoặc 'unassigned')
   const [expandedStageId, setExpandedStageId] = useState(() => {
-    if (stages.length > 0) return stages[0]._id;
+    if (sortedStages.length > 0) return sortedStages[0]._id;
     return 'unassigned';
   });
 
@@ -47,18 +52,12 @@ export function StageAccordion({
       {/* THANH ĐIỀU KHIỂN CHẶNG */}
       <div className={styles.stageControlBar}>
         <div className={styles.controlHint}>
-          Đang phân chia theo <strong>{stages.length} chặng</strong> • Bấm vào chặng để xem chi tiết
+          Đang phân chia theo <strong>{sortedStages.length} chặng</strong> • Bấm vào chặng để xem chi tiết
         </div>
         <div className={styles.controlActions}>
-          <button
-            type="button"
-            className={styles.btnSecondary}
-            onClick={onAutoAssign}
-            disabled={isAutoAssigning || stages.length === 0}
-            title="Tự động so sánh deadline của mục tiêu với ngày kết thúc của từng chặng để phân bổ"
-          >
-            {isAutoAssigning ? '⏳ Đang gom mục tiêu...' : '🔄 Tự động gom Goal theo mốc'}
-          </button>
+          <span className={styles.autoBadge} title="Hệ thống tự động sắp xếp thứ tự chặng và phân bổ mục tiêu theo mốc ngày">
+            ⚡ Tự động gom & đánh số chặng
+          </span>
           <button
             type="button"
             className={styles.btnPrimary}
@@ -71,7 +70,7 @@ export function StageAccordion({
 
       {/* DANH SÁCH CÁC CHẶNG ACCORDION */}
       <div className={styles.stageList}>
-        {stages.map((stage) => {
+        {sortedStages.map((stage) => {
           const isExpanded = expandedStageId === stage._id;
           const stageGoals = goals.filter(
             (g) => g.stage_id && g.stage_id.toString() === stage._id.toString()
