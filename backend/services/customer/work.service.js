@@ -75,7 +75,14 @@ export async function getWorks(userId, search = '') {
     );
   }
 
-  return worksList.map((work) => {
+  // Sắp xếp đầu việc: càng mới càng lên trước (theo createdAt giảm dần)
+  const sortedWorks = [...worksList].sort((a, b) => {
+    const timeA = new Date(a.createdAt || a._id?.getTimestamp?.() || 0).getTime();
+    const timeB = new Date(b.createdAt || b._id?.getTimestamp?.() || 0).getTime();
+    return timeB - timeA;
+  });
+
+  return sortedWorks.map((work) => {
     const workObj = work.toObject();
     const goalsList = Array.isArray(workObj.goals) ? workObj.goals : [];
     const totalGoals = goalsList.length;

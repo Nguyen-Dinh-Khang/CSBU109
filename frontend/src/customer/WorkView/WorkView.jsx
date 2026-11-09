@@ -187,7 +187,13 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
     fetchWorks(debouncedSearch)
       .then((data) => {
         if (!isCancelled) {
-          setWorks(data);
+          const list = Array.isArray(data) ? [...data] : [];
+          list.sort((a, b) => {
+            const timeA = new Date(a.createdAt || a.work_start_date || 0).getTime();
+            const timeB = new Date(b.createdAt || b.work_start_date || 0).getTime();
+            return timeB - timeA;
+          });
+          setWorks(list);
         }
       })
       .catch(() => {
