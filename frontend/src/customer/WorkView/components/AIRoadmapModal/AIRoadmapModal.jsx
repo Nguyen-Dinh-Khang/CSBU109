@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { generateAIRoadmap, refineAIRoadmap, applyAIRoadmap } from '../../../../shared/services/stage.service.js';
+import { generateAIRoadmap, refineAIRoadmap, applyAIRoadmap } from '../../../../shared/services/ai.service.js';
 import styles from './AIRoadmapModal.module.scss';
 
 const DURATION_OPTIONS = [

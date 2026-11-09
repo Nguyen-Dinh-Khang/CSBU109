@@ -1,6 +1,6 @@
 /**
  * TÊN FILE: work.routes.js
- * CÔNG DỤNG: Định tuyến các endpoints phục vụ quản lý đầu việc lớn, mục tiêu con, chặng theo dõi và AI sinh lộ trình.
+ * CÔNG DỤNG: Định tuyến các endpoints phục vụ quản lý đầu việc lớn, mục tiêu con và chặng theo dõi.
  * PHẠM VI DÙNG: Phân hệ Customer.
  */
 
@@ -15,16 +15,7 @@ const router = express.Router();
 /** Toàn bộ các route quản lý đầu việc & mục tiêu đều yêu cầu xác thực Access Token */
 router.use(authenticateToken);
 
-/** 1. AI Roadmap: Sinh lộ trình học tập thông minh qua Gemini AI */
-router.post('/ai-roadmap', stageController.generateAIRoadmap);
-
-/** 2. AI Roadmap: Tinh chỉnh lộ trình đã sinh theo góp ý của người dùng */
-router.post('/ai-roadmap/refine', stageController.refineAIRoadmap);
-
-/** 3. AI Roadmap: Áp dụng lộ trình AI thành một đầu việc hoàn chỉnh */
-router.post('/apply-roadmap', stageController.applyAIRoadmap);
-
-/** 3. Function 1: Tạo đầu việc mới */
+/** 1. Function 1: Tạo đầu việc mới */
 router.post('/', workController.createWork);
 
 /** 4. Function 5: Hiển thị danh sách đầu việc */

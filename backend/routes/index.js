@@ -1,6 +1,6 @@
 /**
  * TÊN FILE: index.js
- * CÔNG DỤNG: Tổng hợp toàn bộ routes của hệ thống (Auth, Works, Dates, Dashboard).
+ * CÔNG DỤNG: Tổng hợp toàn bộ routes của hệ thống (Auth, Works, Dates, Dashboard, AI).
  * PHẠM VI DÙNG: Toàn hệ thống.
  */
 
@@ -9,6 +9,7 @@ import authRoutes from './common/auth.routes.js';
 import workRoutes from './customer/work.routes.js';
 import dateRoutes from './customer/date.routes.js';
 import dashboardRoutes from './customer/dashboard.routes.js';
+import aiRoutes from './customer/ai.routes.js';
 import { getDBStatus } from '../config/db.js';
 
 const router = express.Router();
@@ -25,7 +26,10 @@ router.use('/dates', dateRoutes);
 /** 4. Tuyến đường Dashboard tổng quan (Customer) - Function 4 */
 router.use('/dashboard', dashboardRoutes);
 
-/** 5. Tuyến đường kiểm tra trạng thái máy chủ & MongoDB */
+/** 5. Tuyến đường AI sinh và tinh chỉnh lộ trình học tập (Customer) */
+router.use('/ai', aiRoutes);
+
+/** 6. Tuyến đường kiểm tra trạng thái máy chủ & MongoDB */
 router.get('/status', (req, res) => {
   const dbStatus = getDBStatus();
   res.json({
