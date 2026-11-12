@@ -45,14 +45,14 @@ export async function register({ email, username, password }) {
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedUsername = username.trim().toLowerCase();
 
-  const existingEmail = await User.findOne({ email: normalizedEmail });
+  const existingEmail = await User.findOne({ email: normalizedEmail }).select('_id').lean();
   if (existingEmail) {
     const error = new Error('Email này đã được đăng ký trong hệ thống.');
     error.statusCode = 400;
     throw error;
   }
 
-  const existingUsername = await User.findOne({ username: normalizedUsername });
+  const existingUsername = await User.findOne({ username: normalizedUsername }).select('_id').lean();
   if (existingUsername) {
     const error = new Error('Username này đã có người sử dụng.');
     error.statusCode = 400;
@@ -87,7 +87,7 @@ export async function login({ identifier, password }) {
 
   const user = await User.findOne({
     $or: [{ email: cleanIdentifier }, { username: cleanIdentifier }],
-  });
+  }).select('-works -dates');
 
   if (!user) {
     const error = new Error('Tài khoản hoặc mật khẩu không chính xác.');
@@ -136,7 +136,7 @@ export async function refreshAccessToken(token) {
     throw error;
   }
 
-  const user = await User.findById(decoded.id);
+  const user = await User.findById(decoded.id).select('-works -dates');
   if (!user || user.refreshToken !== token) {
     const error = new Error('Refresh Token không hợp lệ hoặc đã bị thu hồi.');
     error.statusCode = 403;
@@ -171,7 +171,7 @@ export async function logout(userId) {
  * @returns {Promise<object>} - Thông tin user an toàn
  */
 export async function getUserProfile(userId) {
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).select('-works -dates');
   if (!user) {
     const error = new Error('Không tìm thấy thông tin người dùng.');
     error.statusCode = 404;

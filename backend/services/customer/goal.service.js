@@ -9,12 +9,18 @@ import { assignGoalsToStagesInternal } from './stage.service.js';
 
 /**
  * Tìm kiếm thực thể người dùng theo Mongo _id hoặc numeric userId.
+ * Hỗ trợ tham số projection để chỉ lấy các trường cần thiết.
  * @param {string|number} userId - Định danh người dùng
+ * @param {string|object} [projection=null] - Trường cần lấy (ví dụ: 'works')
  * @returns {Promise<object>} - Document User
  */
-async function findUserById(userId) {
+async function findUserById(userId, projection = null) {
   const query = typeof userId === 'number' ? { userId } : { _id: userId };
-  const user = await User.findOne(query);
+  let q = User.findOne(query);
+  if (projection) {
+    q = q.select(projection);
+  }
+  const user = await q;
   if (!user) {
     const error = new Error('Không tìm thấy người dùng trong hệ thống.');
     error.statusCode = 404;
@@ -36,13 +42,14 @@ function formatGoalResponse(goal) {
 
 /**
  * Function 2: Tạo mục tiêu mới gán vào một đầu việc chỉ định, tự động tăng goals_count.
+ * Chỉ nạp mảng works thay vì toàn bộ User Document.
  * @param {string|number} userId - ID người dùng
  * @param {string} workId - ID đầu việc cha
  * @param {object} goalData - Dữ liệu mục tiêu gồm goal_name, goal_end_date, goal_color, goal_range, goal_description
  * @returns {Promise<object>} - Object mục tiêu vừa được tạo
  */
 export async function createGoal(userId, workId, goalData) {
-  const user = await findUserById(userId);
+  const user = await findUserById(userId, 'works');
 
   const work = user.works.id(workId);
   if (!work) {
@@ -78,21 +85,28 @@ export async function createGoal(userId, workId, goalData) {
 
 /**
  * Function 7: Lấy danh sách toàn bộ mục tiêu của một đầu việc, sắp xếp theo deadline tăng dần.
+ * Sử dụng projection {'works.$': 1} để chỉ nạp đúng đầu việc được yêu cầu và dùng lean object.
  * @param {string|number} userId - ID người dùng
  * @param {string} workId - ID đầu việc
  * @returns {Promise<object>} - Gồm tên đầu việc và danh sách mục tiêu
  */
 export async function getGoalsByWorkId(userId, workId) {
-  const user = await findUserById(userId);
+  const query = typeof userId === 'number' ? { userId } : { _id: userId };
+  const user = await User.findOne(
+    { ...query, 'works._id': workId },
+    { 'works.$': 1 }
+  ).lean();
 
-  const work = user.works.id(workId);
-  if (!work) {
+  if (!user || !Array.isArray(user.works) || user.works.length === 0) {
     const error = new Error('Không tìm thấy đầu việc yêu cầu.');
     error.statusCode = 404;
     throw error;
   }
 
-  const sortedGoals = [...work.goals]
+  const work = user.works[0];
+
+  const goalsList = Array.isArray(work.goals) ? work.goals : [];
+  const sortedGoals = [...goalsList]
     .sort((a, b) => new Date(a.goal_end_date) - new Date(b.goal_end_date))
     .map((g) => formatGoalResponse(g));
 
@@ -110,6 +124,7 @@ export async function getGoalsByWorkId(userId, workId) {
 
 /**
  * Function 8 (Edit): Cập nhật thông tin chi tiết của một mục tiêu.
+ * Chỉ nạp mảng works thay vì toàn bộ User Document.
  * @param {string|number} userId - ID người dùng
  * @param {string} workId - ID đầu việc
  * @param {string} goalId - ID mục tiêu cần sửa
@@ -117,7 +132,7 @@ export async function getGoalsByWorkId(userId, workId) {
  * @returns {Promise<object>} - Dữ liệu mục tiêu sau khi cập nhật
  */
 export async function updateGoal(userId, workId, goalId, updateData) {
-  const user = await findUserById(userId);
+  const user = await findUserById(userId, 'works');
 
   const work = user.works.id(workId);
   if (!work) {
@@ -167,13 +182,14 @@ export async function updateGoal(userId, workId, goalId, updateData) {
 
 /**
  * Function 8 (Check): Đảo ngược trạng thái hoàn thành (goal_check) của một mục tiêu.
+ * Chỉ nạp mảng works thay vì toàn bộ User Document.
  * @param {string|number} userId - ID người dùng
  * @param {string} workId - ID đầu việc
  * @param {string} goalId - ID mục tiêu cần chuyển trạng thái
  * @returns {Promise<object>} - Dữ liệu mục tiêu với trạng thái mới
  */
 export async function toggleCheckGoal(userId, workId, goalId) {
-  const user = await findUserById(userId);
+  const user = await findUserById(userId, 'works');
 
   const work = user.works.id(workId);
   if (!work) {
@@ -197,31 +213,27 @@ export async function toggleCheckGoal(userId, workId, goalId) {
 
 /**
  * Function 8 (Delete): Xóa mục tiêu khỏi đầu việc và tự động giảm goals_count.
+ * Sử dụng atomic operator $pull và $inc trực tiếp trên MongoDB không cần nạp document vào RAM.
  * @param {string|number} userId - ID người dùng
  * @param {string} workId - ID đầu việc
  * @param {string} goalId - ID mục tiêu cần xóa
  * @returns {Promise<boolean>} - Trạng thái thành công
  */
 export async function deleteGoal(userId, workId, goalId) {
-  const user = await findUserById(userId);
+  const query = typeof userId === 'number' ? { userId } : { _id: userId };
+  const result = await User.updateOne(
+    { ...query, 'works._id': workId, 'works.goals._id': goalId },
+    {
+      $pull: { 'works.$.goals': { _id: goalId } },
+      $inc: { 'works.$.goals_count': -1 },
+    }
+  );
 
-  const work = user.works.id(workId);
-  if (!work) {
-    const error = new Error('Không tìm thấy đầu việc chứa mục tiêu.');
-    error.statusCode = 404;
-    throw error;
-  }
-
-  const goal = work.goals.id(goalId);
-  if (!goal) {
+  if (result.matchedCount === 0) {
     const error = new Error('Không tìm thấy mục tiêu cần xóa.');
     error.statusCode = 404;
     throw error;
   }
 
-  work.goals.pull(goalId);
-  work.goals_count = Math.max(0, work.goals.length);
-
-  await user.save();
   return true;
 }

@@ -8,12 +8,18 @@ import { User } from '../../models/common/User.js';
 
 /**
  * Tìm kiếm thực thể người dùng theo Mongo _id hoặc numeric userId.
+ * Hỗ trợ tham số projection để chỉ lấy các trường cần thiết.
  * @param {string|number} userId - Định danh người dùng
+ * @param {string|object} [projection=null] - Trường cần lấy (ví dụ: 'dates')
  * @returns {Promise<object>} - Document User
  */
-async function findUserById(userId) {
+async function findUserById(userId, projection = null) {
   const query = typeof userId === 'number' ? { userId } : { _id: userId };
-  const user = await User.findOne(query);
+  let q = User.findOne(query);
+  if (projection) {
+    q = q.select(projection);
+  }
+  const user = await q;
   if (!user) {
     const error = new Error('Không tìm thấy người dùng trong hệ thống.');
     error.statusCode = 404;
@@ -37,12 +43,13 @@ function normalizeDateInput(dateValue) {
 
 /**
  * Function 3: Tạo ngày đặc biệt mới cho người dùng.
+ * Chỉ nạp mảng dates thay vì toàn bộ User Document.
  * @param {string|number} userId - ID người dùng
  * @param {object} dateData - Dữ liệu ngày đặc biệt gồm date_name, date_date, date_color
  * @returns {Promise<object>} - Object ngày đặc biệt vừa tạo
  */
 export async function createDate(userId, dateData) {
-  const user = await findUserById(userId);
+  const user = await findUserById(userId, 'dates');
 
   const { date_name, date_date, date_color } = dateData;
 
@@ -61,15 +68,22 @@ export async function createDate(userId, dateData) {
 /**
  * Function 9: Lấy danh sách ngày đặc biệt theo tháng và năm để hiển thị lên giao diện Lịch.
  * Kiểm tra đa múi giờ (UTC, Local, UTC+7) để ngăn chặn lệch ngày đầu tháng hoặc cuối tháng.
+ * Chỉ truy vấn duy nhất trường dates và dùng lean object để tối ưu hóa bộ nhớ.
  * @param {string|number} userId - ID người dùng
  * @param {number|string} month - Tháng cần xem (1 - 12)
  * @param {number|string} year - Năm cần xem (ví dụ: 2026)
  * @returns {Promise<Array>} - Danh sách ngày đặc biệt trong tháng được sắp xếp theo thời gian
  */
 export async function getDatesByMonthYear(userId, month, year) {
-  const user = await findUserById(userId);
+  const query = typeof userId === 'number' ? { userId } : { _id: userId };
+  const user = await User.findOne(query).select('dates').lean();
+  if (!user) {
+    const error = new Error('Không tìm thấy người dùng trong hệ thống.');
+    error.statusCode = 404;
+    throw error;
+  }
 
-  let dates = user.dates;
+  let dates = Array.isArray(user.dates) ? user.dates : [];
 
   if (month && year) {
     const targetMonth = Number(month);
@@ -105,13 +119,14 @@ export async function getDatesByMonthYear(userId, month, year) {
 
 /**
  * Function 10 (Edit): Cập nhật thông tin ngày đặc biệt theo ID.
+ * Chỉ nạp mảng dates thay vì toàn bộ User Document.
  * @param {string|number} userId - ID người dùng
  * @param {string} dateId - ID ngày đặc biệt cần sửa
  * @param {object} updateData - Dữ liệu cập nhật mới
  * @returns {Promise<object>} - Dữ liệu ngày đặc biệt sau khi sửa
  */
 export async function updateDate(userId, dateId, updateData) {
-  const user = await findUserById(userId);
+  const user = await findUserById(userId, 'dates');
 
   const dateItem = user.dates.id(dateId);
   if (!dateItem) {
@@ -138,22 +153,23 @@ export async function updateDate(userId, dateId, updateData) {
 
 /**
  * Function 10 (Delete): Xóa bản ghi ngày đặc biệt khỏi danh sách của người dùng.
+ * Sử dụng atomic operator $pull trực tiếp trên MongoDB không cần nạp document vào RAM.
  * @param {string|number} userId - ID người dùng
  * @param {string} dateId - ID ngày đặc biệt cần xóa
  * @returns {Promise<boolean>} - Trạng thái thành công
  */
 export async function deleteDate(userId, dateId) {
-  const user = await findUserById(userId);
+  const query = typeof userId === 'number' ? { userId } : { _id: userId };
+  const result = await User.updateOne(
+    { ...query, 'dates._id': dateId },
+    { $pull: { dates: { _id: dateId } } }
+  );
 
-  const dateItem = user.dates.id(dateId);
-  if (!dateItem) {
+  if (result.matchedCount === 0) {
     const error = new Error('Không tìm thấy ngày đặc biệt cần xóa.');
     error.statusCode = 404;
     throw error;
   }
-
-  user.dates.pull(dateId);
-  await user.save();
 
   return true;
 }

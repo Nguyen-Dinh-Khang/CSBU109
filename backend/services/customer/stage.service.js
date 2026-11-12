@@ -8,12 +8,18 @@ import { User } from '../../models/common/User.js';
 
 /**
  * Tìm kiếm thực thể người dùng theo Mongo _id hoặc numeric userId.
+ * Hỗ trợ tham số projection để chỉ lấy các trường cần thiết.
  * @param {string|number} userId - Định danh người dùng
+ * @param {string|object} [projection=null] - Trường cần lấy (ví dụ: 'works')
  * @returns {Promise<object>} - Document User
  */
-async function findUserById(userId) {
+async function findUserById(userId, projection = null) {
   const query = typeof userId === 'number' ? { userId } : { _id: userId };
-  const user = await User.findOne(query);
+  let q = User.findOne(query);
+  if (projection) {
+    q = q.select(projection);
+  }
+  const user = await q;
   if (!user) {
     const error = new Error('Không tìm thấy người dùng trong hệ thống.');
     error.statusCode = 404;
@@ -101,7 +107,7 @@ function normalizeStageOrders(stages) {
  * @returns {Promise<object>} - Object kết quả gồm stage, stages, goals
  */
 export async function createStage(userId, workId, stageData) {
-  const user = await findUserById(userId);
+  const user = await findUserById(userId, 'works');
 
   const work = user.works.id(workId);
   if (!work) {
@@ -180,7 +186,7 @@ export async function createStage(userId, workId, stageData) {
  * @returns {Promise<object>} - Object gồm stage, stages, goals sau khi sửa
  */
 export async function updateStage(userId, workId, stageId, updateData) {
-  const user = await findUserById(userId);
+  const user = await findUserById(userId, 'works');
 
   const work = user.works.id(workId);
   if (!work) {
@@ -266,7 +272,7 @@ export async function updateStage(userId, workId, stageId, updateData) {
  * @returns {Promise<object>} - Object gồm stages và goals sau khi xóa
  */
 export async function deleteStage(userId, workId, stageId) {
-  const user = await findUserById(userId);
+  const user = await findUserById(userId, 'works');
 
   const work = user.works.id(workId);
   if (!work) {
@@ -325,7 +331,7 @@ export async function deleteStage(userId, workId, stageId) {
  * @returns {Promise<object>} - Danh sách stages và goals sau khi phân bổ
  */
 export async function autoAssignGoalsToStages(userId, workId) {
-  const user = await findUserById(userId);
+  const user = await findUserById(userId, 'works');
 
   const work = user.works.id(workId);
   if (!work) {
@@ -354,7 +360,7 @@ export async function autoAssignGoalsToStages(userId, workId) {
  * @returns {Promise<object>} - Đầu việc vừa tạo kèm stages và goals
  */
 export async function applyRoadmap(userId, roadmapData) {
-  const user = await findUserById(userId);
+  const user = await findUserById(userId, 'works');
 
   const {
     work_name,

@@ -24,16 +24,28 @@ async function findUserById(userId) {
 
 /**
  * Function 4: Lấy dữ liệu tổng quan cho trang Dashboard: 5 mục tiêu gần nhất (chưa xong) và 3 sự kiện sắp tới.
+ * Chỉ nạp các trường cần thiết (works._id, works.work_name, works.goals, dates) và dùng lean object.
  * @param {string|number} userId - ID người dùng
  * @returns {Promise<object>} - Gồm upcoming_goals và upcoming_dates
  */
 export async function getDashboardOverview(userId) {
-  const user = await findUserById(userId);
+  const query = typeof userId === 'number' ? { userId } : { _id: userId };
+  const user = await User.findOne(query)
+    .select('works._id works.work_name works.goals dates')
+    .lean();
+
+  if (!user) {
+    const error = new Error('Không tìm thấy người dùng trong hệ thống.');
+    error.statusCode = 404;
+    throw error;
+  }
 
   // 1. Trích xuất tất cả Goal từ các Work của user
   const allIncompleteGoals = [];
-  user.works.forEach((work) => {
-    work.goals.forEach((goal) => {
+  const worksList = Array.isArray(user.works) ? user.works : [];
+  worksList.forEach((work) => {
+    const goalsList = Array.isArray(work.goals) ? work.goals : [];
+    goalsList.forEach((goal) => {
       if (!goal.goal_check) {
         allIncompleteGoals.push({
           goal_id: goal._id,
@@ -58,7 +70,8 @@ export async function getDashboardOverview(userId) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const upcomingDates = user.dates
+  const datesList = Array.isArray(user.dates) ? user.dates : [];
+  const upcomingDates = datesList
     .filter((d) => new Date(d.date_date) >= today)
     .sort((a, b) => new Date(a.date_date) - new Date(b.date_date))
     .slice(0, 3)
