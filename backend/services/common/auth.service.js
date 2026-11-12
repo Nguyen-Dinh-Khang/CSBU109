@@ -104,7 +104,7 @@ export async function login({ identifier, password }) {
 
   const tokens = generateTokens(user);
   user.refreshToken = tokens.refreshToken;
-  await user.save();
+  await User.updateOne({ _id: user._id }, { $set: { refreshToken: tokens.refreshToken } });
 
   return {
     user: user.toJSON(),
