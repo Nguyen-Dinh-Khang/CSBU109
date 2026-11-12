@@ -199,3 +199,129 @@
     }
   }
 }
+
+.otpInfoBox {
+  background-color: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: $radius-md;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.86rem;
+  color: $color-text-main;
+}
+
+.otpTargetEmail {
+  font-weight: 600;
+  color: $color-primary;
+  word-break: break-all;
+}
+
+.changeEmailBtn {
+  background: none;
+  border: none;
+  color: $color-text-dim;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0.2rem 0.4rem;
+  border-radius: $radius-sm;
+  transition: all $transition-fast;
+
+  &:hover {
+    color: $color-text-main;
+    background-color: $color-surface-hover;
+  }
+}
+
+.otpInput {
+  text-align: center;
+  font-size: 1.5rem !important;
+  font-weight: 700;
+  letter-spacing: 0.35rem;
+  font-family: monospace;
+}
+
+.otpActionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: -0.25rem;
+  font-size: 0.82rem;
+  color: $color-text-muted;
+}
+
+.resendBtn {
+  background: none;
+  border: none;
+  color: $color-primary;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 0;
+  transition: color $transition-fast;
+
+  &:hover:not(:disabled) {
+    color: $color-primary-hover;
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    color: $color-text-dim;
+    cursor: not-allowed;
+  }
+}
+
+.devNotice {
+  background-color: rgba(245, 158, 11, 0.12);
+  border: 1px dashed rgba(245, 158, 11, 0.4);
+  color: #fcd34d;
+  padding: 0.65rem 0.85rem;
+  border-radius: $radius-md;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin-top: 0.25rem;
+
+  strong {
+    color: #fbbf24;
+  }
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+
+  .btnBack {
+    @include button-base;
+    flex: 1;
+    background-color: $color-surface-hover;
+    color: $color-text-main;
+    border: 1px solid $color-border;
+    padding: 0.8rem;
+    font-weight: 600;
+
+    &:hover {
+      background-color: $color-border;
+    }
+  }
+
+  .btnConfirm {
+    @include button-base;
+    flex: 2;
+    background-color: $color-primary;
+    color: #ffffff;
+    padding: 0.8rem;
+    font-weight: 600;
+
+    &:hover {
+      background-color: $color-primary-hover;
+      box-shadow: $shadow-glow;
+    }
+  }
+}
+
