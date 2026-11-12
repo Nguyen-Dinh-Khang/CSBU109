@@ -8,7 +8,9 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
 import { connectDB } from './config/db.js';
+import { swaggerSpec } from './config/swagger.js';
 import routes from './routes/index.js';
 
 // Nạp biến môi trường từ file .env
@@ -53,11 +55,33 @@ app.use(cookieParser());
 // Định tuyến API tập trung
 app.use('/api', routes);
 
+// Tích hợp tài liệu trực tuyến Swagger UI & OpenAPI Specification
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customSiteTitle: 'CSBU109 API Documentation',
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      filter: true,
+    },
+  })
+);
+
+// Endpoint xuất file đặc tả OpenAPI định dạng JSON
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
 // Endpoint mặc định
 app.get('/', (req, res) => {
   res.send({
-    message: 'Chào mừng đến với Node.js Backend API!',
-    documentation: '/api/status để kiểm tra trạng thái máy chủ',
+    message: 'Chào mừng đến với Node.js Backend API (CSBU109)!',
+    apiDocs: '/api-docs (Tài liệu OpenAPI / Swagger UI trực quan)',
+    apiDocsJson: '/api-docs.json',
+    serverStatus: '/api/status',
   });
 });
 
