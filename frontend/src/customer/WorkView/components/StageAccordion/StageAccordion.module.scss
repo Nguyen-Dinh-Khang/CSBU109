@@ -10,59 +10,8 @@
 .stageAccordion {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  margin-top: 1rem;
-}
-
-.stageControlBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
   gap: 0.75rem;
-  background: var(--bg-card, #ffffff);
-  border: 1px solid var(--border-color, #e2e8f0);
-  padding: 0.85rem 1.25rem;
-  border-radius: 12px;
-
-  @include mobile {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-.controlHint {
-  font-size: 0.88rem;
-  color: $color-text-muted;
-
-  strong {
-    color: $color-text-main;
-  }
-}
-
-.controlActions {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  flex-wrap: wrap;
-
-  @include mobile {
-    flex-direction: column;
-  }
-}
-
-.autoBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  padding: 0.45rem 0.85rem;
-  border-radius: 9999px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  user-select: none;
+  margin-top: 0.5rem;
 }
 
 .btnPrimary {
@@ -70,15 +19,15 @@
   color: #ffffff;
   border: none;
   border-radius: 8px;
-  padding: 0.55rem 1rem;
-  font-size: 0.88rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
 
   &:hover {
     filter: brightness(1.1);
@@ -91,15 +40,15 @@
   color: $color-text-main;
   border: 1px solid var(--border-color, #cbd5e1);
   border-radius: 8px;
-  padding: 0.55rem 1rem;
-  font-size: 0.88rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
 
   &:hover {
     background: var(--bg-hover, rgba(0, 0, 0, 0.05));
@@ -116,13 +65,13 @@
 .stageList {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.65rem;
 }
 
 .stageCard {
   background: var(--bg-card, #ffffff);
   border: 1px solid var(--border-color, #e2e8f0);
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 
@@ -131,21 +80,21 @@
   }
 
   &.expanded {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
     border-color: var(--stage-color, $color-primary);
   }
 }
 
 .stageHeader {
-  padding: 1.15rem 1.25rem;
+  padding: 0.8rem 1.1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
   user-select: none;
   background: transparent;
-  border-left: 5px solid var(--stage-color, $color-primary);
-  gap: 1rem;
+  border-left: 4px solid var(--stage-color, $color-primary);
+  gap: 0.85rem;
   transition: background 0.15s ease;
 
   &:hover {
@@ -155,45 +104,52 @@
   @include mobile {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.85rem;
+    gap: 0.75rem;
+    padding: 0.75rem 0.9rem;
   }
 }
 
 .stageHeaderLeft {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   flex: 1;
+  min-width: 0;
 }
 
 .orderBadge {
   background: var(--stage-color, $color-primary);
   color: #ffffff;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 700;
-  padding: 0.3rem 0.65rem;
+  padding: 0.25rem 0.55rem;
   border-radius: 6px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .stageTitleGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.15rem;
+  min-width: 0;
 }
 
 .stageName {
-  font-size: 1.05rem;
+  font-size: 0.96rem;
   font-weight: 700;
   color: $color-text-main;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stageMeta {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 0.82rem;
+  gap: 0.5rem;
+  font-size: 0.78rem;
   color: $color-text-muted;
   flex-wrap: wrap;
 }
@@ -201,7 +157,8 @@
 .stageHeaderRight {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1rem;
+  flex-shrink: 0;
 
   @include mobile {
     width: 100%;
@@ -213,8 +170,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.35rem;
-  min-width: 130px;
+  gap: 0.25rem;
+  min-width: 120px;
 
   @include mobile {
     align-items: flex-start;
@@ -222,18 +179,18 @@
 }
 
 .progressLabel {
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 600;
   color: $color-text-muted;
 
   &.done {
-    color: $color-primary;
+    color: #10b981;
   }
 }
 
 .progressTrack {
   width: 100%;
-  height: 6px;
+  height: 5px;
   background: var(--border-color, #e2e8f0);
   border-radius: 999px;
   overflow: hidden;
@@ -248,18 +205,43 @@
 .headerActions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
+}
+
+.quickAddGoalBtn {
+  background: rgba(59, 130, 246, 0.1);
+  color: $color-primary;
+  border: 1px dashed rgba(59, 130, 246, 0.4);
+  border-radius: 6px;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: $color-primary;
+    color: #ffffff;
+    border-style: solid;
+    border-color: $color-primary;
+  }
 }
 
 .iconBtn {
   background: transparent;
   border: none;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  padding: 0.35rem;
+  padding: 0.3rem;
   border-radius: 6px;
   color: $color-text-muted;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     color: $color-primary;
@@ -272,9 +254,10 @@
 }
 
 .chevron {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: $color-text-muted;
   transition: transform 0.2s ease;
+  margin-left: 0.2rem;
 
   &.open {
     transform: rotate(180deg);
@@ -282,16 +265,16 @@
 }
 
 .stageBody {
-  padding: 0 1.25rem 1.25rem;
+  padding: 0 1.15rem 1.15rem;
   border-top: 1px solid var(--border-color, #f1f5f9);
   background: var(--bg-sub, #fafafa);
 }
 
 .stageDesc {
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   color: $color-text-muted;
-  margin: 1rem 0 0.85rem;
-  line-height: 1.5;
+  margin: 0.75rem 0 0.65rem;
+  line-height: 1.45;
   font-style: italic;
 }
 
@@ -299,13 +282,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 1rem 0 0.75rem;
+  margin: 0.75rem 0 0.65rem;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
 .goalCountText {
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: $color-text-main;
 }
@@ -313,31 +296,62 @@
 .stageGoalsList {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.55rem;
+}
+
+.dashedAddGoalBtn {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: transparent;
+  border: 1.5px dashed var(--border-color, #cbd5e1);
+  border-radius: 8px;
+  color: $color-text-muted;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  transition: all 0.2s ease;
+  margin-top: 0.35rem;
+
+  &:hover {
+    border-color: $color-primary;
+    color: $color-primary;
+    background: rgba(59, 130, 246, 0.05);
+    transform: translateY(-1px);
+  }
+}
+
+.dashedAddPlus {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .emptyStageGoals {
   text-align: center;
-  padding: 1.75rem 1rem;
+  padding: 1.35rem 1rem;
   color: $color-text-muted;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   background: var(--bg-card, #ffffff);
   border: 1px dashed var(--border-color, #cbd5e1);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .goalItem {
   background: var(--bg-card, #ffffff);
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 8px;
-  padding: 0.85rem 1rem;
+  padding: 0.75rem 0.9rem;
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   transition: border-color 0.15s ease, background 0.15s ease;
 
   &:hover {
@@ -356,17 +370,17 @@
 }
 
 .checkbox {
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  border-radius: 6px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border-radius: 5px;
   border: 2px solid var(--border-color, #cbd5e1);
   background: #ffffff;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: transparent;
   transition: all 0.2s ease;
@@ -376,8 +390,8 @@
   }
 
   &.checked {
-    background: $color-primary;
-    border-color: $color-primary;
+    background: #10b981;
+    border-color: #10b981;
     color: #ffffff;
   }
 }
@@ -392,34 +406,36 @@
 .goalContent {
   flex: 1;
   cursor: pointer;
+  min-width: 0;
 }
 
 .goalItemTitle {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: $color-text-main;
+  word-break: break-word;
 }
 
 .goalItemDesc {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: $color-text-muted;
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
 }
 
 .goalItemMeta {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  font-size: 0.78rem;
+  gap: 0.55rem;
+  font-size: 0.76rem;
   color: $color-text-muted;
-  margin-top: 0.35rem;
+  margin-top: 0.25rem;
   flex-wrap: wrap;
 }
 
 .deadlineTag {
-  padding: 0.15rem 0.45rem;
+  padding: 0.15rem 0.4rem;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
 
   &.overdue {
@@ -446,5 +462,5 @@
 .goalItemActions {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }

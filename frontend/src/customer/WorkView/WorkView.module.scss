@@ -8,9 +8,9 @@
 @use '../../app/styles/mixins' as *;
 
 .workView {
-  max-width: 1280px;
+  max-width: 1560px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 1.5rem 1.5rem 3.5rem;
   width: 100%;
 
   @include mobile {
@@ -411,15 +411,21 @@
 
   &.splitViewMode {
     display: flex;
-    gap: 1.5rem;
-    align-items: flex-start;
+    gap: 1.25rem;
+    align-items: stretch;
+    height: calc(100vh - 185px);
+    min-height: 620px;
 
     @include tablet {
       gap: 1rem;
+      height: auto;
+      min-height: auto;
+      display: flex;
     }
 
     @include mobile {
       display: block;
+      height: auto;
     }
   }
 }
@@ -429,12 +435,20 @@
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
   &.compactColumn {
-    flex: 0 0 360px;
-    max-width: 360px;
+    flex: 0 0 350px;
+    max-width: 350px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: $radius-lg;
+    padding: 1rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
 
     @include tablet {
-      flex: 0 0 300px;
-      max-width: 300px;
+      flex: 0 0 290px;
+      max-width: 290px;
     }
 
     @include mobile {
@@ -445,29 +459,58 @@
 
 .compactListHeader {
   @include flex-between;
-  margin-bottom: 0.85rem;
-  padding: 0 0.25rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--border-color, #f1f5f9);
+  flex-shrink: 0;
 
   .compactListTitle {
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: $color-text-main;
   }
+}
 
-  .btnExpandGrid {
-    background: transparent;
-    border: none;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: $color-primary;
-    cursor: pointer;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    transition: all 0.15s ease;
+.compactHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
 
-    &:hover {
-      background: rgba(59, 130, 246, 0.1);
-    }
+.btnSmallCreateWork {
+  @include button-base;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background-color: rgba(59, 130, 246, 0.12);
+  color: $color-primary;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: $color-primary;
+    color: #ffffff;
+  }
+}
+
+.btnExpandGrid {
+  background: transparent;
+  border: 1px solid var(--border-color, #cbd5e1);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: $color-text-muted;
+  cursor: pointer;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: $color-text-main;
+    border-color: $color-border-light;
+    background: rgba(0, 0, 0, 0.04);
   }
 }
 
@@ -495,10 +538,12 @@
 
   &.compactGrid {
     grid-template-columns: 1fr;
-    gap: 0.85rem;
-    max-height: calc(100vh - 210px);
+    gap: 0.65rem;
+    flex: 1;
+    height: 100%;
+    max-height: none;
     overflow-y: auto;
-    padding-right: 0.35rem;
+    padding-right: 0.25rem;
 
     &::-webkit-scrollbar {
       width: 5px;
@@ -534,25 +579,46 @@
   }
 
   &.compactCard {
-    padding: 1rem 1.15rem;
+    padding: 0.8rem 0.95rem;
+
+    .workCardTop {
+      margin-bottom: 0.4rem;
+    }
 
     .workTitle {
-      font-size: 1rem;
-      margin-bottom: 0.35rem;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .workDesc {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 1;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.35rem;
     }
 
     .dateRangeRow {
-      font-size: 0.76rem;
-      margin-bottom: 0.65rem;
+      font-size: 0.74rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .progressSection {
+      margin-top: 0.25rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .progressHeader {
+      margin-bottom: 0.25rem;
+      font-size: 0.74rem;
+    }
+
+    .progressTrack {
+      height: 5px;
     }
 
     .clickHint {
@@ -708,34 +774,25 @@
 .goalDetailColumn {
   flex: 1 1 auto;
   min-width: 0;
-  max-height: calc(100vh - 120px);
-  overflow-y: auto;
-  position: sticky;
-  top: 80px;
+  height: 100%;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  top: 0;
   @include card-base;
-  padding: 1.75rem;
-  border-color: rgba(59, 130, 246, 0.45);
+  padding: 1.25rem 1.5rem;
+  border: 1px solid rgba(59, 130, 246, 0.35);
   background-color: $color-surface;
+  border-radius: $radius-lg;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
   animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: $color-border-light;
-    border-radius: $radius-full;
-  }
+  overflow: hidden;
 
   @include mobile {
+    height: auto;
     max-height: none;
-    overflow-y: visible;
-    position: static;
-    padding: 1.1rem;
+    padding: 1rem;
     animation: slideInMobile 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
@@ -764,7 +821,7 @@
 
 .mobileBackRow {
   display: none;
-  margin-bottom: 1rem;
+  margin-bottom: 0.85rem;
 
   @include mobile {
     display: block;
@@ -788,21 +845,26 @@
   }
 }
 
-.btnCloseDetail {
-  @include button-base;
-  padding: 0.45rem 0.95rem;
-  font-size: 0.85rem;
-  background-color: transparent;
-  color: $color-text-muted;
+.btnCloseDetailRound {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
   border: 1px solid var(--border-color, #cbd5e1);
-  border-radius: 8px;
+  background: var(--bg-card, #ffffff);
+  color: $color-text-muted;
+  font-size: 0.85rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s ease;
+  @include flex-center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 
   &:hover {
-    background-color: var(--bg-secondary, #f1f5f9);
     color: #ef4444;
     border-color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.08);
+    transform: rotate(90deg);
   }
 
   @include mobile {
@@ -810,73 +872,275 @@
   }
 }
 
-.goalDetailHeader {
-  @include flex-between;
-  align-items: flex-start;
-  padding-bottom: 1.25rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid $color-border;
-  gap: 1rem;
-  flex-wrap: wrap;
-  position: sticky;
-  top: -1.75rem;
-  margin-top: -1.75rem;
-  padding-top: 1.75rem;
-  background-color: $color-surface;
-  z-index: 10;
+.btnActionStage {
+  @include button-base;
+  padding: 0.42rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background-color: var(--bg-card, #ffffff);
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  color: $color-primary;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 
-  @include mobile {
-    position: static;
-    margin-top: 0;
-    padding-top: 0;
-    flex-direction: column;
-    gap: 0.85rem;
+  &:hover {
+    background-color: rgba(59, 130, 246, 0.08);
+    border-color: $color-primary;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
   }
 }
 
-.detailTag {
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: $color-primary;
+.btnActionGoal {
+  @include button-base;
+  padding: 0.42rem 1rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  margin-bottom: 0.25rem;
+  background: linear-gradient(135deg, $color-primary, #6366f1);
+  border: none;
+  color: #ffffff;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+
+  &:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+  }
+}
+
+.goalDetailHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding-bottom: 0.85rem;
+  margin-bottom: 0.85rem;
+  border-bottom: 1px solid $color-border;
+  position: static;
+  margin-top: 0;
+  padding-top: 0;
+  background-color: transparent;
+  flex-shrink: 0;
+  z-index: 2;
+
+  @include mobile {
+    gap: 0.75rem;
+  }
+}
+
+.headerPrimaryRow {
+  @include flex-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  @include mobile {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+}
+
+.headerTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.titleWithBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.workColorIndicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .detailTitle {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: $color-text-main;
-
-  span {
-    color: $color-primary;
-  }
+  margin: 0;
 
   @include mobile {
-    font-size: 1.15rem;
+    font-size: 1.12rem;
+  }
+}
+
+.workOverallBadge {
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: $radius-full;
+  background: rgba(59, 130, 246, 0.12);
+  color: $color-primary;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+
+  &.done {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.3);
   }
 }
 
 .detailSub {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: $color-text-muted;
-  margin-top: 0.2rem;
+  margin: 0;
 }
 
 .detailActions {
   display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
 
   @include mobile {
     width: 100%;
+    flex-wrap: wrap;
 
     button {
       flex: 1;
       justify-content: center;
-      padding: 0.45rem 0.75rem;
-      font-size: 0.84rem;
+      padding: 0.45rem 0.7rem;
+      font-size: 0.82rem;
     }
+  }
+}
+
+.headerToolbarRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+
+  @include mobile {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+}
+
+.goalFilterGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--bg-sub, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 999px;
+  padding: 0.2rem 0.3rem;
+
+  @include mobile {
+    width: 100%;
+    justify-content: center;
+    overflow-x: auto;
+  }
+}
+
+.goalFilterChip {
+  background: transparent;
+  border: none;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: $color-text-muted;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: $color-text-main;
+  }
+
+  &.activeChip {
+    background: #ffffff;
+    color: $color-primary;
+    font-weight: 700;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.goalListSummary {
+  font-size: 0.78rem;
+  color: $color-text-muted;
+  font-weight: 600;
+}
+
+.stageToolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+
+  @include mobile {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+.btnToggleExpandAll {
+  @include button-base;
+  padding: 0.38rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background-color: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 8px;
+  color: $color-text-muted;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: $color-primary;
+    border-color: $color-primary;
+    background-color: rgba(59, 130, 246, 0.06);
+  }
+
+  @include mobile {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.detailBodyScroll {
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $color-border-light;
+    border-radius: $radius-full;
+  }
+
+  @include mobile {
+    overflow-y: visible;
+    height: auto;
+    padding-right: 0;
   }
 }
 
@@ -1110,18 +1374,18 @@
   display: inline-flex;
   background: var(--bg-card, #ffffff);
   border: 1px solid var(--border-color, #cbd5e1);
-  border-radius: 10px;
-  padding: 0.25rem;
-  gap: 0.25rem;
-  margin-top: 0.75rem;
+  border-radius: 8px;
+  padding: 0.2rem;
+  gap: 0.2rem;
+  margin-top: 0;
 }
 
 .viewBtn {
   background: transparent;
   border: none;
-  border-radius: 8px;
-  padding: 0.45rem 0.85rem;
-  font-size: 0.84rem;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: $color-text-muted;
   cursor: pointer;

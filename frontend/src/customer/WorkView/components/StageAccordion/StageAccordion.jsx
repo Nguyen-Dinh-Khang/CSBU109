@@ -10,7 +10,7 @@ import styles from './StageAccordion.module.scss';
 
 /**
  * Component hiển thị danh sách các chặng dạng Accordion.
- * @param {object} props - Gồm stages, goals, onToggleGoalCheck, onEditGoal, onDeleteGoal, onCreateGoalInStage, onOpenCreateStage, onEditStage, onDeleteStage, onAutoAssign, isAutoAssigning
+ * @param {object} props - Gồm stages, goals, onToggleGoalCheck, onEditGoal, onDeleteGoal, onCreateGoalInStage, onEditStage, onDeleteStage, onAutoAssign, isAutoAssigning, expandedStageIds, onToggleExpandStage
  */
 export function StageAccordion({
   stages = [],
@@ -19,29 +19,45 @@ export function StageAccordion({
   onEditGoal,
   onDeleteGoal,
   onCreateGoalInStage,
-  onOpenCreateStage,
   onEditStage,
   onDeleteStage,
   onAutoAssign,
   isAutoAssigning = false,
+  expandedStageIds,
+  onToggleExpandStage,
 }) {
   // Sắp xếp các chặng luôn theo thứ tự stage_order tăng dần
   const sortedStages = [...stages].sort(
     (a, b) => (Number(a.stage_order) || 1) - (Number(b.stage_order) || 1)
   );
 
-  // State quản lý chặng nào đang được mở rộng (null hoặc stageId hoặc 'unassigned')
-  const [expandedStageId, setExpandedStageId] = useState(() => {
-    if (sortedStages.length > 0) return sortedStages[0]._id;
-    return 'unassigned';
+  // State dự phòng quản lý chặng mở rộng nếu không được truyền từ component cha
+  const [internalExpandedIds, setInternalExpandedIds] = useState(() => {
+    if (sortedStages.length > 0) return new Set([sortedStages[0]._id]);
+    return new Set(['unassigned']);
   });
 
+  const isControlled = expandedStageIds !== undefined;
+  const currentExpandedIds = isControlled ? expandedStageIds : internalExpandedIds;
+
   /**
-   * Bật/tắt mở rộng một chặng.
+   * Chuyển đổi trạng thái đóng / mở của một chặng.
    * @param {string} stageId - ID chặng cần chuyển đổi
    */
-  const handleToggleExpand = (stageId) => {
-    setExpandedStageId((prev) => (prev === stageId ? null : stageId));
+  const handleToggle = (stageId) => {
+    if (onToggleExpandStage) {
+      onToggleExpandStage(stageId);
+    } else {
+      setInternalExpandedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(stageId)) {
+          next.delete(stageId);
+        } else {
+          next.add(stageId);
+        }
+        return next;
+      });
+    }
   };
 
   // Gom các mục tiêu chưa được gán vào chặng nào
@@ -49,29 +65,10 @@ export function StageAccordion({
 
   return (
     <div className={styles.stageAccordion}>
-      {/* THANH ĐIỀU KHIỂN CHẶNG */}
-      <div className={styles.stageControlBar}>
-        <div className={styles.controlHint}>
-          Đang phân chia theo <strong>{sortedStages.length} chặng</strong> • Bấm vào chặng để xem chi tiết
-        </div>
-        <div className={styles.controlActions}>
-          <span className={styles.autoBadge} title="Hệ thống tự động sắp xếp thứ tự chặng và phân bổ mục tiêu theo mốc ngày">
-            ⚡ Tự động gom & đánh số chặng
-          </span>
-          <button
-            type="button"
-            className={styles.btnPrimary}
-            onClick={onOpenCreateStage}
-          >
-            + Thêm Chặng mới
-          </button>
-        </div>
-      </div>
-
       {/* DANH SÁCH CÁC CHẶNG ACCORDION */}
       <div className={styles.stageList}>
         {sortedStages.map((stage) => {
-          const isExpanded = expandedStageId === stage._id;
+          const isExpanded = currentExpandedIds.has(stage._id);
           const stageGoals = goals.filter(
             (g) => g.stage_id && g.stage_id.toString() === stage._id.toString()
           );
@@ -89,7 +86,7 @@ export function StageAccordion({
               {/* HEADER CỦA CHẶNG */}
               <div
                 className={styles.stageHeader}
-                onClick={() => handleToggleExpand(stage._id)}
+                onClick={() => handleToggle(stage._id)}
               >
                 <div className={styles.stageHeaderLeft}>
                   <span className={styles.orderBadge}>
@@ -125,6 +122,14 @@ export function StageAccordion({
 
                   {/* CÁC NÚT THAO TÁC VỚI CHẶNG */}
                   <div className={styles.headerActions} onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      className={styles.quickAddGoalBtn}
+                      title={`Thêm nhanh mục tiêu vào chặng ${stage.stage_order || 1}`}
+                      onClick={() => onCreateGoalInStage(stage._id)}
+                    >
+                      + Mục tiêu
+                    </button>
                     <button
                       type="button"
                       className={styles.iconBtn}
@@ -242,6 +247,16 @@ export function StageAccordion({
                           </div>
                         );
                       })}
+
+                      <button
+                        type="button"
+                        className={styles.dashedAddGoalBtn}
+                        onClick={() => onCreateGoalInStage(stage._id)}
+                        title={`Thêm mục tiêu mới vào chặng ${stage.stage_order || 1}`}
+                      >
+                        <span className={styles.dashedAddPlus}>+</span>
+                        <span>Thêm mục tiêu vào Chặng {stage.stage_order || 1}</span>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -253,12 +268,12 @@ export function StageAccordion({
         {/* MỤC TIÊU CHUNG / CHƯA PHÂN CHẶNG (ACCORDION CUỐI) */}
         {unassignedGoals.length > 0 && (
           <div
-            className={`${styles.stageCard} ${expandedStageId === 'unassigned' ? styles.expanded : ''}`}
+            className={`${styles.stageCard} ${currentExpandedIds.has('unassigned') ? styles.expanded : ''}`}
             style={{ '--stage-color': '#64748B' }}
           >
             <div
               className={styles.stageHeader}
-              onClick={() => handleToggleExpand('unassigned')}
+              onClick={() => handleToggle('unassigned')}
             >
               <div className={styles.stageHeaderLeft}>
                 <span className={styles.orderBadge} style={{ background: '#64748B' }}>
@@ -276,13 +291,13 @@ export function StageAccordion({
                 <span className={styles.progressLabel}>
                   {unassignedGoals.filter((g) => g.goal_check).length}/{unassignedGoals.length} Mục tiêu
                 </span>
-                <span className={`${styles.chevron} ${expandedStageId === 'unassigned' ? styles.open : ''}`}>
+                <span className={`${styles.chevron} ${currentExpandedIds.has('unassigned') ? styles.open : ''}`}>
                   ▼
                 </span>
               </div>
             </div>
 
-            {expandedStageId === 'unassigned' && (
+            {currentExpandedIds.has('unassigned') && (
               <div className={styles.stageBody}>
                 <div className={styles.bodyActionRow}>
                   <span className={styles.goalCountText}>
@@ -360,6 +375,16 @@ export function StageAccordion({
                       </div>
                     );
                   })}
+
+                  <button
+                    type="button"
+                    className={styles.dashedAddGoalBtn}
+                    onClick={() => onCreateGoalInStage(null)}
+                    title="Thêm mục tiêu tự do mới"
+                  >
+                    <span className={styles.dashedAddPlus}>+</span>
+                    <span>Thêm mục tiêu tự do mới</span>
+                  </button>
                 </div>
               </div>
             )}

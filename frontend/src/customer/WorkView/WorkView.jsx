@@ -148,6 +148,8 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
   const [selectedWorkStages, setSelectedWorkStages] = useState([]);
   const [isLoadingGoals, setIsLoadingGoals] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'stages'
+  const [expandedStageIds, setExpandedStageIds] = useState(new Set());
+  const [goalStatusFilter, setGoalStatusFilter] = useState('all'); // 'all' | 'pending' | 'completed'
 
   // State Modal nổi Tạo / Sửa Goal trong Work đang chọn
   const [showGoalModal, setShowGoalModal] = useState(false);
@@ -263,6 +265,39 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
   }, [works, statusFilter]);
 
   /**
+   * Thống kê số lượng mục tiêu theo trạng thái (chưa hoàn thành vs đã xong) của Work đang chọn.
+   */
+  const goalFilterCounts = useMemo(() => {
+    let pending = 0;
+    let completed = 0;
+    selectedWorkGoals.forEach((g) => {
+      if (g.goal_check) {
+        completed += 1;
+      } else {
+        pending += 1;
+      }
+    });
+    return {
+      all: selectedWorkGoals.length,
+      pending,
+      completed,
+    };
+  }, [selectedWorkGoals]);
+
+  /**
+   * Danh sách mục tiêu của Work được lọc theo chip trạng thái (Tất cả / Đang làm / Đã xong).
+   */
+  const displayedGoals = useMemo(() => {
+    if (goalStatusFilter === 'pending') {
+      return selectedWorkGoals.filter((g) => !g.goal_check);
+    }
+    if (goalStatusFilter === 'completed') {
+      return selectedWorkGoals.filter((g) => g.goal_check);
+    }
+    return selectedWorkGoals;
+  }, [selectedWorkGoals, goalStatusFilter]);
+
+  /**
    * Gọi API GET /api/works/:work_id/goals để lấy toàn bộ mục tiêu chi tiết khi người dùng bấm vào một Work.
    * @param {string} workId - ID của đầu việc được bấm vào
    */
@@ -272,6 +307,7 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
       setShowGoalModal(false);
       setEditingGoal(null);
       setTargetGoalStageId(null);
+      setGoalStatusFilter('all');
 
       if (!isAuthenticated) {
         setSelectedWorkGoals(DEMO_GOALS_MAP[workId] || []);
@@ -291,8 +327,10 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
 
         if (stagesList.length > 0) {
           setViewMode('stages');
+          setExpandedStageIds(new Set([stagesList[0]._id]));
         } else {
           setViewMode('list');
+          setExpandedStageIds(new Set(['unassigned']));
         }
 
         // Đồng bộ lại tiến độ & số lượng goal trên thẻ Work vắn tắt
@@ -582,6 +620,11 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
       } else {
         setSelectedWorkStages((prev) => prev.filter((s) => s._id !== stageId));
       }
+      setExpandedStageIds((prev) => {
+        const next = new Set(prev);
+        next.delete(stageId);
+        return next;
+      });
 
       if (res?.goals) {
         setSelectedWorkGoals(res.goals);
@@ -644,26 +687,71 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
   };
 
   /**
-   * Đảo trạng thái hoàn thành của một mục tiêu (Check / Uncheck).
+   * Bật / tắt mở rộng một chặng chỉ định.
+   * @param {string} stageId - ID chặng cần chuyển đổi
+   */
+  const handleToggleExpandStage = (stageId) => {
+    setExpandedStageIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(stageId)) {
+        next.delete(stageId);
+      } else {
+        next.add(stageId);
+      }
+      return next;
+    });
+  };
+
+  /**
+   * Mở rộng hoặc thu gọn toàn bộ các chặng cùng một lúc để quan sát tổng quan.
+   */
+  const handleToggleExpandAllStages = () => {
+    const allIds = selectedWorkStages.map((s) => s._id);
+    if (selectedWorkGoals.some((g) => !g.stage_id)) {
+      allIds.push('unassigned');
+    }
+    const areAllExpanded = allIds.length > 0 && allIds.every((id) => expandedStageIds.has(id));
+
+    if (areAllExpanded) {
+      setExpandedStageIds(new Set());
+    } else {
+      setExpandedStageIds(new Set(allIds));
+    }
+  };
+
+  /**
+   * Đảo trạng thái hoàn thành của một mục tiêu (Check / Uncheck) với cơ chế Cập nhật lạc quan (Optimistic UI).
+   * Thay đổi trạng thái ngay lập tức trên UI và gọi API ngầm; tự động rollback nếu server trả về lỗi.
    * @param {string} goalId - ID mục tiêu
    */
   const handleToggleGoalCheck = async (goalId) => {
+    // 1. Sao lưu trạng thái hiện tại phục vụ hoàn tác (rollback) khi có lỗi
+    const prevGoals = selectedWorkGoals;
+    const prevWorks = works;
+
+    // 2. Cập nhật lạc quan ngay lập tức trên UI (0ms delay)
+    const nextGoals = selectedWorkGoals.map((g) =>
+      g._id === goalId ? { ...g, goal_check: !g.goal_check } : g
+    );
+    setSelectedWorkGoals(nextGoals);
+    syncWorkProgressFromGoals(selectedWorkId, nextGoals);
+
     if (!isAuthenticated) {
-      const nextGoals = selectedWorkGoals.map((g) =>
-        g._id === goalId ? { ...g, goal_check: !g.goal_check } : g
-      );
-      setSelectedWorkGoals(nextGoals);
-      syncWorkProgressFromGoals(selectedWorkId, nextGoals);
       return;
     }
 
+    // 3. Gửi request backend ngầm
     try {
       const updatedGoal = await toggleCheckGoal(selectedWorkId, goalId);
-      const nextGoals = selectedWorkGoals.map((g) => (g._id === goalId ? updatedGoal : g));
-      setSelectedWorkGoals(nextGoals);
-      syncWorkProgressFromGoals(selectedWorkId, nextGoals);
+      // Đồng bộ chính xác với object trả về từ server
+      setSelectedWorkGoals((curr) =>
+        curr.map((g) => (g._id === goalId ? { ...g, ...updatedGoal } : g))
+      );
     } catch {
-      setErrorMsg('Không thể cập nhật trạng thái mục tiêu.');
+      // 4. Nếu có lỗi: Hoàn tác lại trạng thái cũ và hiển thị thông báo
+      setSelectedWorkGoals(prevGoals);
+      setWorks(prevWorks);
+      setErrorMsg('Không thể cập nhật trạng thái mục tiêu. Đã hoàn tác lại.');
     }
   };
 
@@ -895,16 +983,26 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
           {activeWork && (
             <div className={styles.compactListHeader}>
               <span className={styles.compactListTitle}>
-                Danh sách đầu việc ({filteredWorks.length})
+                Đầu việc ({filteredWorks.length})
               </span>
-              <button
-                type="button"
-                className={styles.btnExpandGrid}
-                onClick={() => setSelectedWorkId(null)}
-                title="Mở rộng xem toàn bộ lưới"
-              >
-                ⤢ Mở rộng lưới
-              </button>
+              <div className={styles.compactHeaderActions}>
+                <button
+                  type="button"
+                  className={styles.btnSmallCreateWork}
+                  onClick={handleOpenCreateWork}
+                  title="Tạo nhanh đầu việc mới"
+                >
+                  + Tạo việc
+                </button>
+                <button
+                  type="button"
+                  className={styles.btnExpandGrid}
+                  onClick={() => setSelectedWorkId(null)}
+                  title="Mở rộng xem toàn bộ lưới"
+                >
+                  ⤢ Lưới
+                </button>
+              </div>
             </div>
           )}
 
@@ -1067,55 +1165,134 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
         </div>
 
         <div className={styles.goalDetailHeader}>
-          <div>
-            <div className={styles.detailTag}>Chi tiết đầu việc & mục tiêu</div>
-            <h2 className={styles.detailTitle}>
-              🎯 <span>{activeWork.work_name}</span>
-            </h2>
-            <p className={styles.detailSub}>
-              {activeWork.work_description && `${activeWork.work_description} • `}
-              Tổng cộng {selectedWorkGoals.length} mục tiêu • Hoàn thành{' '}
-              {activeWork.progress_percentage ?? 0}%
-            </p>
+          {/* TẦNG 1: THÔNG TIN TIÊU ĐỀ WORK & CỤM NÚT HÀNH ĐỘNG CỐT LÕI */}
+          <div className={styles.headerPrimaryRow}>
+            <div className={styles.headerTitleGroup}>
+              <div className={styles.titleWithBadge}>
+                <span
+                  className={styles.workColorIndicator}
+                  style={{ backgroundColor: activeWork.work_color || '#3B82F6' }}
+                />
+                <h2 className={styles.detailTitle}>{activeWork.work_name}</h2>
+                <span
+                  className={`${styles.workOverallBadge} ${
+                    activeWork.progress_percentage === 100 ? styles.done : ''
+                  }`}
+                >
+                  {activeWork.progress_percentage ?? 0}% Hoàn thành
+                </span>
+              </div>
+              <p className={styles.detailSub}>
+                {activeWork.work_description ? `${activeWork.work_description} • ` : ''}
+                Tổng cộng {selectedWorkGoals.length} mục tiêu
+                {selectedWorkStages.length > 0 && ` • ${selectedWorkStages.length} chặng`}
+              </p>
+            </div>
 
-            {/* BỘ CHUYỂN ĐỔI CHẾ ĐỘ XEM: DANH SÁCH PHẲNG vs DẠNG CHẶNG ACCORDION */}
+            <div className={styles.detailActions}>
+              <button
+                type="button"
+                className={styles.btnActionStage}
+                onClick={handleOpenCreateStage}
+                title="Thêm một chặng mới cho đầu việc này"
+              >
+                🪜 + Thêm Chặng
+              </button>
+              <button
+                type="button"
+                className={styles.btnActionGoal}
+                onClick={handleOpenCreateGoal}
+                title="Thêm một mục tiêu mới"
+              >
+                🎯 + Thêm Goal
+              </button>
+              <button
+                type="button"
+                className={styles.btnCloseDetailRound}
+                onClick={() => setSelectedWorkId(null)}
+                title="Thu nhỏ chi tiết"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* TẦNG 2: BỘ CHUYỂN TAB & CÔNG CỤ HỖ TRỢ QUAN SÁT TỔNG QUÁT */}
+          <div className={styles.headerToolbarRow}>
+            {/* TRÁI: CHUYỂN CHẾ ĐỘ XEM */}
             <div className={styles.viewModeSwitcher}>
               <button
                 type="button"
                 className={`${styles.viewBtn} ${viewMode === 'list' ? styles.activeView : ''}`}
                 onClick={() => setViewMode('list')}
               >
-                📋 Danh sách phẳng
+                📋 Danh sách phẳng ({selectedWorkGoals.length})
               </button>
               <button
                 type="button"
                 className={`${styles.viewBtn} ${viewMode === 'stages' ? styles.activeView : ''}`}
                 onClick={() => setViewMode('stages')}
               >
-                🪜 Dạng Chặng Accordion ({selectedWorkStages.length})
+                🪜 Dạng Chặng ({selectedWorkStages.length})
               </button>
             </div>
-          </div>
-          <div className={styles.detailActions}>
-            <button
-              type="button"
-              className={styles.btnPrimary}
-              onClick={handleOpenCreateGoal}
-            >
-              + Thêm Goal mới
-            </button>
-            <button
-              type="button"
-              className={styles.btnCloseDetail}
-              onClick={() => setSelectedWorkId(null)}
-              title="Thu nhỏ chi tiết"
-            >
-              ✕ Thu nhỏ
-            </button>
+
+            {/* GIỮA: CHIP LỌC TRẠNG THÁI MỤC TIÊU */}
+            <div className={styles.goalFilterGroup}>
+              <button
+                type="button"
+                className={`${styles.goalFilterChip} ${
+                  goalStatusFilter === 'all' ? styles.activeChip : ''
+                }`}
+                onClick={() => setGoalStatusFilter('all')}
+              >
+                Tất cả ({goalFilterCounts.all})
+              </button>
+              <button
+                type="button"
+                className={`${styles.goalFilterChip} ${
+                  goalStatusFilter === 'pending' ? styles.activeChip : ''
+                }`}
+                onClick={() => setGoalStatusFilter('pending')}
+              >
+                ⏳ Chưa xong ({goalFilterCounts.pending})
+              </button>
+              <button
+                type="button"
+                className={`${styles.goalFilterChip} ${
+                  goalStatusFilter === 'completed' ? styles.activeChip : ''
+                }`}
+                onClick={() => setGoalStatusFilter('completed')}
+              >
+                ✓ Đã xong ({goalFilterCounts.completed})
+              </button>
+            </div>
+
+            {/* PHẢI: NÚT TIỆN ÍCH MỞ RỘNG / THU GỌN */}
+            <div className={styles.stageToolbarRight}>
+              {viewMode === 'stages' && selectedWorkStages.length > 0 ? (
+                <button
+                  type="button"
+                  className={styles.btnToggleExpandAll}
+                  onClick={handleToggleExpandAllStages}
+                  title="Mở rộng hoặc thu gọn tất cả các chặng để xem tổng thể"
+                >
+                  {selectedWorkStages.length > 0 &&
+                  selectedWorkStages.every((s) => expandedStageIds.has(s._id))
+                    ? '▲ Thu gọn tất cả'
+                    : '▼ Mở rộng tất cả'}
+                </button>
+              ) : (
+                <span className={styles.goalListSummary}>
+                  Đang hiển thị {displayedGoals.length}/{selectedWorkGoals.length}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-          {/* DANH SÁCH GOALS ĐÃ FETCH HOẶC HIỂN THỊ THEO DẠNG CHẶNG ACCORDION */}
+        {/* VÙNG NỘI DUNG CUỘN ĐỘC LẬP (ĐẢM BẢO ĐỘ CAO 2 CỘT LUÔN BẰNG NHAU) */}
+        <div className={styles.detailBodyScroll}>
           {isLoadingGoals ? (
             <div className={styles.loadingGoals}>
               ⏳ Đang gửi fetch lấy chi tiết các Goal của &quot;{activeWork.work_name}&quot;...
@@ -1123,7 +1300,7 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
           ) : viewMode === 'stages' ? (
             <StageAccordion
               stages={selectedWorkStages}
-              goals={selectedWorkGoals}
+              goals={displayedGoals}
               onToggleGoalCheck={handleToggleGoalCheck}
               onEditGoal={handleOpenEditGoal}
               onDeleteGoal={handleDeleteGoal}
@@ -1133,21 +1310,39 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
               onDeleteStage={handleDeleteStage}
               onAutoAssign={handleAutoAssignGoals}
               isAutoAssigning={isAutoAssigning}
+              expandedStageIds={expandedStageIds}
+              onToggleExpandStage={handleToggleExpandStage}
             />
-          ) : selectedWorkGoals.length === 0 ? (
+          ) : displayedGoals.length === 0 ? (
             <div className={styles.emptyGoals}>
-              <p>Đầu việc này hiện chưa có mục tiêu (Goal) nào.</p>
-              <button
-                type="button"
-                className={styles.btnSecondary}
-                onClick={handleOpenCreateGoal}
-              >
-                + Tạo Goal đầu tiên cho đầu việc này
-              </button>
+              <p>
+                {goalStatusFilter === 'all'
+                  ? 'Đầu việc này hiện chưa có mục tiêu (Goal) nào.'
+                  : `Không có mục tiêu nào thuộc trạng thái "${
+                      goalStatusFilter === 'pending' ? 'Chưa xong' : 'Đã xong'
+                    }".`}
+              </p>
+              {goalStatusFilter === 'all' ? (
+                <button
+                  type="button"
+                  className={styles.btnSecondary}
+                  onClick={handleOpenCreateGoal}
+                >
+                  + Tạo Goal đầu tiên cho đầu việc này
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.btnSecondary}
+                  onClick={() => setGoalStatusFilter('all')}
+                >
+                  Xem tất cả mục tiêu
+                </button>
+              )}
             </div>
           ) : (
             <div className={styles.goalsList}>
-              {selectedWorkGoals.map((goal) => {
+              {displayedGoals.map((goal) => {
                 const badge = getDeadlineBadgeInfo(goal.goal_end_date);
                 return (
                   <div
@@ -1210,7 +1405,8 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
               })}
             </div>
           )}
-        </section>
+        </div>
+      </section>
       )}
       </div>
 
