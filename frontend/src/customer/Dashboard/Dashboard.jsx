@@ -63,38 +63,53 @@ const DEMO_OVERVIEW = {
 export function Dashboard({ onOpenAuth, onNavigateTab, onSelectWorkFromDashboard }) {
   const { user, isAuthenticated } = useAuth();
   const [overview, setOverview] = useState({ upcoming_goals: [], upcoming_dates: [] });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
+  const [updatingGoalIds, setUpdatingGoalIds] = useState(new Set());
 
   /**
    * Tải dữ liệu tổng quan từ API /api/dashboard.
+   * @param {boolean} [showLoading=false] - Có hiển thị trạng thái loading hay không
    */
-  const loadDashboardData = useCallback(async () => {
+  const loadDashboardData = useCallback(async (showLoading = false) => {
     if (!isAuthenticated) return;
     try {
-      setIsLoading(true);
+      if (showLoading) {
+        setIsLoading(true);
+      }
       setErrorMsg('');
       const data = await fetchDashboard();
       setOverview({
-        upcoming_goals: data?.upcoming_goals || [],
+        upcoming_goals: (data?.upcoming_goals || []).map((g) => ({
+          ...g,
+          goal_check: Boolean(g.goal_check || false),
+        })),
         upcoming_dates: data?.upcoming_dates || [],
       });
     } catch {
       setErrorMsg('Không thể tải dữ liệu tổng quan lúc này.');
     } finally {
-      setIsLoading(false);
+      if (showLoading) {
+        setIsLoading(false);
+      }
     }
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      setIsLoading(false);
+      return;
+    }
     let isCancelled = false;
 
     fetchDashboard()
       .then((data) => {
         if (!isCancelled) {
           setOverview({
-            upcoming_goals: data?.upcoming_goals || [],
+            upcoming_goals: (data?.upcoming_goals || []).map((g) => ({
+              ...g,
+              goal_check: Boolean(g.goal_check || false),
+            })),
             upcoming_dates: data?.upcoming_dates || [],
           });
         }
@@ -116,16 +131,49 @@ export function Dashboard({ onOpenAuth, onNavigateTab, onSelectWorkFromDashboard
   }, [isAuthenticated]);
 
   /**
-   * Đánh dấu hoàn thành nhanh một mục tiêu ngay trên Dashboard và tải lại danh sách.
+   * Đánh dấu hoàn thành nhanh hoặc hoàn tác mục tiêu theo cơ chế Optimistic Update.
+   * Giữ lại mục tiêu trên giao diện để tránh người dùng bấm nhầm cho đến khi trang được làm mới.
    * @param {string} workId - ID của đầu việc chứa mục tiêu
    * @param {string} goalId - ID của mục tiêu cần đánh dấu
    */
   const handleQuickCompleteGoal = async (workId, goalId) => {
+    if (updatingGoalIds.has(goalId)) return;
+
+    const targetGoal = overview.upcoming_goals.find((g) => g.goal_id === goalId);
+    if (!targetGoal) return;
+
+    const nextCheckState = !targetGoal.goal_check;
+
+    // 1. Optimistic Update phản hồi tức thì 0ms, không làm giật hay chớp trang
+    setOverview((prev) => ({
+      ...prev,
+      upcoming_goals: prev.upcoming_goals.map((g) =>
+        g.goal_id === goalId ? { ...g, goal_check: nextCheckState } : g
+      ),
+    }));
+
+    // Ghi nhận trạng thái đang đồng bộ ngầm
+    setUpdatingGoalIds((prev) => new Set(prev).add(goalId));
+    setErrorMsg('');
+
     try {
+      // 2. Gửi request đồng bộ ngầm với backend
       await toggleCheckGoal(workId, goalId);
-      await loadDashboardData();
     } catch {
-      setErrorMsg('Không thể cập nhật trạng thái mục tiêu.');
+      // 3. Rollback nếu có sự cố mạng / API thất bại
+      setOverview((prev) => ({
+        ...prev,
+        upcoming_goals: prev.upcoming_goals.map((g) =>
+          g.goal_id === goalId ? { ...g, goal_check: !nextCheckState } : g
+        ),
+      }));
+      setErrorMsg('Không thể cập nhật trạng thái mục tiêu. Vui lòng thử lại.');
+    } finally {
+      setUpdatingGoalIds((prev) => {
+        const nextSet = new Set(prev);
+        nextSet.delete(goalId);
+        return nextSet;
+      });
     }
   };
 
@@ -312,7 +360,9 @@ export function Dashboard({ onOpenAuth, onNavigateTab, onSelectWorkFromDashboard
         <div className={styles.summaryCard}>
           <div className={styles.summaryIcon}>🔥</div>
           <div>
-            <div className={styles.summaryValue}>{upcomingGoals.length}</div>
+            <div className={styles.summaryValue}>
+              {upcomingGoals.filter((g) => !g.goal_check).length}
+            </div>
             <div className={styles.summaryLabel}>Mục tiêu sắp tới hạn (Tối đa 5)</div>
           </div>
         </div>
@@ -361,16 +411,29 @@ export function Dashboard({ onOpenAuth, onNavigateTab, onSelectWorkFromDashboard
             ) : (
               <div className={styles.listContainer}>
                 {upcomingGoals.map((goal) => {
+                  const isCompleted = Boolean(goal.goal_check);
+                  const isUpdating = updatingGoalIds.has(goal.goal_id);
                   const badge = getDeadlineBadgeInfo(goal.goal_end_date);
+
                   return (
-                    <div key={goal.goal_id} className={styles.goalRow}>
+                    <div
+                      key={goal.goal_id}
+                      className={`${styles.goalRow} ${isCompleted ? styles.goalRowCompleted : ''}`}
+                    >
                       <button
                         type="button"
-                        className={styles.checkTrigger}
+                        className={`${styles.checkTrigger} ${
+                          isCompleted ? styles.checkTriggerCompleted : ''
+                        }`}
                         onClick={() => handleQuickCompleteGoal(goal.work_id, goal.goal_id)}
-                        title="Đánh dấu hoàn thành mục tiêu này"
+                        disabled={isUpdating}
+                        title={
+                          isCompleted
+                            ? 'Bấm để hoàn tác (bỏ tích hoàn thành)'
+                            : 'Đánh dấu hoàn thành mục tiêu này'
+                        }
                       >
-                        ✓
+                        {isCompleted ? '✓' : ''}
                       </button>
                       <span
                         className={styles.colorBar}
@@ -381,16 +444,29 @@ export function Dashboard({ onOpenAuth, onNavigateTab, onSelectWorkFromDashboard
                         onClick={() => handleJumpToWork(goal.work_id)}
                         title="Bấm để mở chi tiết đầu việc này"
                       >
-                        <div className={styles.goalTitle}>{goal.goal_name}</div>
+                        <div
+                          className={`${styles.goalTitle} ${
+                            isCompleted ? styles.goalTitleCompleted : ''
+                          }`}
+                        >
+                          {goal.goal_name}
+                        </div>
                         <div className={styles.goalMeta}>
                           <span className={styles.workTag}>📁 {goal.work_name}</span>
                           {goal.goal_range && <span>• Quy mô: {goal.goal_range}/5</span>}
+                          {isCompleted && (
+                            <span className={styles.completedTag}>✓ Đã hoàn thành (Chờ làm mới)</span>
+                          )}
                         </div>
                       </div>
                       <div className={styles.goalRight}>
-                        <span className={`${styles.deadlineBadge} ${styles[badge.status]}`}>
-                          {badge.label}
-                        </span>
+                        {isCompleted ? (
+                          <span className={styles.doneBadge}>Đã xong</span>
+                        ) : (
+                          <span className={`${styles.deadlineBadge} ${styles[badge.status]}`}>
+                            {badge.label}
+                          </span>
+                        )}
                         <span className={styles.dateText}>
                           {formatDisplayDate(goal.goal_end_date)}
                         </span>
