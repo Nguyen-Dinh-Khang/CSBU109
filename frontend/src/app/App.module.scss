@@ -1,6 +1,6 @@
 /**
  * TÊN FILE: App.module.scss
- * CÔNG DỤNG: Khung giao diện toàn trang (Global Shell Layout) cho ứng dụng.
+ * CÔNG DỤNG: Khung giao diện toàn trang (Global Shell Layout) đón nhận dải nền Ambient Sky với hiệu ứng đệm mây và kính sương mờ.
  * PHẠM VI DÙNG: Cấp 0 - App.
  */
 
@@ -14,7 +14,7 @@
   overflow-x: clip;
   display: flex;
   flex-direction: column;
-  background-color: $color-bg;
+  background-color: transparent;
   color: $color-text-main;
 }
 
@@ -28,10 +28,14 @@
 }
 
 .footer {
-  border-top: 1px solid $color-border;
+  border-top: 1px solid var(--color-glass-border);
   padding: 1.5rem;
   text-align: center;
   font-size: 0.85rem;
   color: $color-text-dim;
-  background-color: $color-surface;
+  background-color: var(--color-surface-cloud);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: background-color $duration-smooth $ease-cloud,
+              border-color $duration-smooth $ease-cloud;
 }

@@ -1,6 +1,6 @@
 /**
  * TÊN FILE: Header.module.scss
- * CÔNG DỤNG: Định dạng SCSS Module cho thanh điều hướng Header toàn ứng dụng, nút đổi Theme và cụm 3 tab điều hướng responsive.
+ * CÔNG DỤNG: Định dạng SCSS Module cho thanh điều hướng Header theo phong cách Calm Pastel Sky (kính sương mờ 16px, Cloud Pill Tabs, gradient Primary Sky).
  * PHẠM VI DÙNG: Component Header (Cấp 1 - Components).
  */
 
@@ -12,12 +12,11 @@
   top: 0;
   z-index: 100;
   width: 100%;
-  background-color: var(--header-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--header-border);
+  @include cloud-frosted-glass(16px);
+  border-bottom: 1px solid var(--color-glass-border);
   padding: 0.75rem 1.5rem;
-  transition: background-color $transition-normal, border-color $transition-normal;
+  transition: background-color $duration-smooth $ease-cloud,
+              border-color $duration-smooth $ease-cloud;
 
   @include mobile {
     padding: 0.6rem 0.85rem;
@@ -42,7 +41,7 @@
   gap: 0.75rem;
 
   @include mobile {
-    gap: 0.5rem;
+    gap: 0.45rem;
   }
 }
 
@@ -50,25 +49,21 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.35);
-  color: #10b981;
-  padding: 0.4rem 0.8rem;
-  border-radius: $radius-full;
+  background: $color-mint-bg;
+  border: 1px solid $color-mint-border;
+  color: $color-mint-text;
+  padding: 0.4rem 0.85rem;
+  border-radius: $radius-pill;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all $transition-fast;
+  @include cloud-button-press;
 
   &:hover {
-    background: rgba(34, 197, 94, 0.22);
-    border-color: #22c55e;
-    box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+    background: #d1fae5;
+    border-color: #6ee7b7;
+    box-shadow: $shadow-cloud-sm;
     transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
   }
 
   @include mobile {
@@ -84,6 +79,7 @@
   align-items: center;
   gap: 0.75rem;
   cursor: pointer;
+  user-select: none;
 
   @include mobile {
     gap: 0.45rem;
@@ -91,20 +87,20 @@
 }
 
 .logoIcon {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: $radius-md;
-  background: linear-gradient(135deg, $color-primary, $color-accent);
+  background: $gradient-sky-primary;
   @include flex-center;
   color: #ffffff;
-  font-size: 1.2rem;
-  box-shadow: $shadow-glow;
+  font-size: 1.25rem;
+  box-shadow: $shadow-sky-halo;
   flex-shrink: 0;
 
   @include mobile {
-    width: 30px;
-    height: 30px;
-    font-size: 1rem;
+    width: 32px;
+    height: 32px;
+    font-size: 1.05rem;
   }
 }
 
@@ -114,8 +110,8 @@
 }
 
 .brandName {
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 800;
   color: $color-text-main;
   letter-spacing: -0.02em;
 
@@ -126,22 +122,29 @@
 
 .brandDesc {
   font-size: 0.72rem;
-  color: $color-text-dim;
+  color: $color-text-muted;
 
   @include mobile {
     display: none;
   }
 }
 
+// ==========================================
+// CỤM 3 TAB ĐIỀU HƯỚNG MÂY TRÔI (Cloud Pill Tabs)
+// ==========================================
 .navTabs {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  background-color: $color-surface;
+  gap: 0.35rem;
+  background-color: var(--color-surface-cloud);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 0.3rem;
-  border-radius: $radius-full;
-  border: 1px solid $color-border;
-  transition: all $transition-normal;
+  border-radius: $radius-pill;
+  border: 1px solid var(--color-glass-border);
+  box-shadow: $shadow-cloud-sm;
+  transition: background-color $duration-smooth $ease-cloud,
+              border-color $duration-smooth $ease-cloud;
 
   @include tablet {
     order: 3;
@@ -157,31 +160,39 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.48rem 1.1rem;
-  border-radius: $radius-full;
-  border: none;
+  padding: 0.48rem 1.2rem;
+  border-radius: $radius-pill;
+  border: 1px solid transparent;
   background: transparent;
   color: $color-text-muted;
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all $transition-fast;
+  transition: color $duration-fast $ease-cloud,
+              background $duration-fast $ease-cloud,
+              box-shadow $duration-fast $ease-cloud,
+              transform $duration-fast $ease-cloud;
 
   &:hover {
-    color: $color-text-main;
-    background-color: rgba(125, 125, 125, 0.08);
+    color: $color-sky-text;
+    background-color: $color-sky-subtle;
+  }
+
+  &:active {
+    transform: scale(0.975);
   }
 
   &.activeTab {
-    background: linear-gradient(135deg, $color-primary, $color-accent);
+    background: $gradient-sky-primary;
     color: #ffffff;
-    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.35);
+    box-shadow: $shadow-cloud-sm;
+    border-color: rgba(255, 255, 255, 0.4);
   }
 
   @include tablet {
     flex: 1;
     justify-content: center;
-    padding: 0.45rem 0.5rem;
+    padding: 0.42rem 0.5rem;
     font-size: 0.82rem;
     gap: 0.3rem;
   }
@@ -207,6 +218,9 @@
   font-size: 0.95rem;
 }
 
+// ==========================================
+// KHU VỰC TÁC VỤ BÊN PHẢI (Actions & User)
+// ==========================================
 .actions {
   display: flex;
   align-items: center;
@@ -221,21 +235,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  border: 1px solid $color-border;
-  background-color: $color-surface;
+  border: 1px solid var(--color-glass-border);
+  background-color: var(--color-surface-cloud);
   color: $color-text-main;
   font-size: 1.05rem;
   cursor: pointer;
-  transition: all $transition-fast;
-  flex-shrink: 0;
+  @include cloud-button-press;
 
   &:hover {
-    border-color: $color-primary;
-    transform: scale(1.08);
-    box-shadow: $shadow-sm;
+    border-color: $color-sky-border;
+    box-shadow: $shadow-cloud-sm;
+    transform: translateY(-1px);
   }
 
   @include mobile {
@@ -249,11 +262,11 @@
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  background-color: $color-surface;
-  border: 1px solid $color-border;
-  padding: 0.3rem 0.75rem;
-  border-radius: $radius-full;
-  transition: all $transition-fast;
+  background-color: var(--color-surface-cloud);
+  border: 1px solid var(--color-glass-border);
+  padding: 0.3rem 0.8rem;
+  border-radius: $radius-pill;
+  box-shadow: $shadow-cloud-sm;
 
   @include mobile {
     padding: 0.25rem 0.5rem;
@@ -262,15 +275,16 @@
 }
 
 .avatar {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: $gradient-sky-primary;
   color: #ffffff;
-  font-weight: 600;
-  font-size: 0.85rem;
+  font-weight: 700;
+  font-size: 0.88rem;
   @include flex-center;
   flex-shrink: 0;
+  box-shadow: $shadow-cloud-sm;
 
   @include mobile {
     width: 26px;
@@ -306,8 +320,8 @@
 
 .userIdBadge {
   font-size: 0.68rem;
-  color: $color-primary;
-  font-weight: 600;
+  color: $color-sky-text;
+  font-weight: 700;
 }
 
 .btnLogout {
@@ -316,12 +330,12 @@
   font-size: 0.82rem;
   background-color: transparent;
   color: $color-text-muted;
-  border-color: $color-border;
+  border-color: var(--color-glass-border);
 
   &:hover {
-    color: $color-danger;
-    border-color: $color-danger;
-    background-color: $color-danger-bg;
+    color: $color-rose-text;
+    border-color: $color-rose-border;
+    background-color: $color-rose-bg;
   }
 
   @include mobile {
@@ -332,21 +346,16 @@
 
 .btnLogin {
   @include button-base;
-  padding: 0.45rem 0.95rem;
-  background-color: transparent;
-  color: $color-text-main;
-  border-color: $color-border;
+  padding: 0.48rem 1.05rem;
+  background-color: var(--color-surface-cloud);
+  color: $color-sky-text;
+  border-color: $color-sky-border;
+  font-weight: 600;
 
   &:hover {
-    border-color: $color-primary;
-    color: $color-primary;
-    background-color: rgba(59, 130, 246, 0.08);
-  }
-
-  &:active {
-    background-color: rgba(59, 130, 246, 0.16);
-    color: $color-primary;
-    border-color: $color-primary;
+    border-color: $color-sky-primary;
+    background-color: $color-sky-light;
+    box-shadow: $shadow-cloud-sm;
   }
 
   @include mobile {
@@ -357,18 +366,15 @@
 
 .btnRegister {
   @include button-base;
-  padding: 0.45rem 1.1rem;
-  background-color: $color-primary;
+  padding: 0.48rem 1.25rem;
+  background: $gradient-sky-primary;
   color: #ffffff;
+  font-weight: 600;
+  box-shadow: $shadow-cloud-sm;
 
   &:hover {
-    background-color: $color-primary-hover;
-    box-shadow: $shadow-glow;
-  }
-
-  &:active {
-    background-color: $color-primary-hover;
-    filter: brightness(0.95);
+    filter: brightness(1.06);
+    box-shadow: $shadow-cloud-cushion;
   }
 
   @include mobile {

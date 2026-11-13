@@ -1,55 +1,62 @@
 /**
  * TÊN FILE: global.scss
- * CÔNG DỤNG: Cấu hình CSS toàn cục, CSS Variables cho Dark / Light mode, reset thuộc tính mặc định, font chữ và thanh cuộn.
- * PHẠM VI DÙNG: Toàn hệ thống Frontend.
+ * CÔNG DỤNG: Cấu hình CSS toàn cục, CSS Variables theo chuẩn Calm Pastel Sky (Bầu Trời Ban Mai Thư Giãn), reset thuộc tính, font chữ và thanh cuộn.
+ * PHẠM VI DÙNG: Toàn hệ thống Frontend (Common).
  */
 
 @use 'variables' as *;
 
-:root {
-  --color-bg: #0b0f19;
-  --color-surface: #111827;
-  --color-surface-card: #1f2937;
-  --color-surface-hover: #374151;
-  --color-border: #374151;
-  --color-border-light: #4b5563;
-  --color-text-main: #f9fafb;
-  --color-text-muted: #9ca3af;
-  --color-text-dim: #6b7280;
-  --header-bg: rgba(11, 15, 25, 0.88);
-  --header-border: #374151;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
-  --card-active-bg: linear-gradient(180deg, rgba(37, 99, 235, 0.14), rgba(17, 24, 39, 0.95));
-  --hero-radial-bg: radial-gradient(circle at top, rgba(59, 130, 246, 0.16), rgba(17, 24, 39, 0.95));
-  --welcome-bg: linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(139, 92, 246, 0.08));
-  --calendar-empty-bg: rgba(17, 24, 39, 0.35);
-  --calendar-day-bg: #0b0f19;
-  --calendar-has-event: rgba(31, 41, 55, 0.75);
-}
-
+:root,
 [data-theme="light"] {
   --color-bg: #f8fafc;
+  --ambient-sky: linear-gradient(180deg, #f0f9ff 0%, #f8fafc 45%, #f1f5f9 100%);
   --color-surface: #ffffff;
-  --color-surface-card: #f1f5f9;
-  --color-surface-hover: #e2e8f0;
+  --color-surface-cloud: rgba(255, 255, 255, 0.88);
+  --color-glass-border: rgba(255, 255, 255, 0.8);
+  --color-surface-card: #f8fafc;
+  --color-surface-hover: #f0f9ff;
   --color-border: #e2e8f0;
   --color-border-light: #cbd5e1;
   --color-text-main: #0f172a;
-  --color-text-muted: #475569;
+  --color-text-muted: #64748b;
   --color-text-dim: #94a3b8;
-  --header-bg: rgba(255, 255, 255, 0.92);
-  --header-border: #e2e8f0;
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-  --card-active-bg: linear-gradient(180deg, rgba(59, 130, 246, 0.1), rgba(255, 255, 255, 0.98));
-  --hero-radial-bg: radial-gradient(circle at top, rgba(59, 130, 246, 0.1), rgba(255, 255, 255, 0.98));
-  --welcome-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.06));
-  --calendar-empty-bg: rgba(241, 245, 249, 0.7);
+  --header-bg: rgba(255, 255, 255, 0.85);
+  --header-border: rgba(226, 232, 240, 0.8);
+  --shadow-sm: 0 4px 14px -2px rgba(56, 189, 248, 0.08);
+  --shadow-md: 0 12px 32px -4px rgba(56, 189, 248, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 16px 36px -4px rgba(56, 189, 248, 0.16), 0 6px 16px -2px rgba(15, 23, 42, 0.05);
+  --card-active-bg: linear-gradient(180deg, rgba(56, 189, 248, 0.08), rgba(255, 255, 255, 0.98));
+  --hero-radial-bg: linear-gradient(135deg, rgba(224, 242, 254, 0.95) 0%, rgba(254, 243, 199, 0.45) 100%);
+  --welcome-bg: linear-gradient(135deg, rgba(224, 242, 254, 0.95) 0%, rgba(254, 243, 199, 0.45) 100%);
+  --calendar-empty-bg: rgba(240, 249, 255, 0.5);
   --calendar-day-bg: #ffffff;
-  --calendar-has-event: rgba(248, 250, 252, 0.95);
+  --calendar-has-event: rgba(240, 249, 255, 0.95);
+}
+
+[data-theme="dark"] {
+  --color-bg: #070d18;
+  --ambient-sky: linear-gradient(180deg, #070d18 0%, #0c1527 50%, #0f172a 100%);
+  --color-surface: #0f172a;
+  --color-surface-cloud: rgba(15, 23, 42, 0.85);
+  --color-glass-border: rgba(56, 189, 248, 0.16);
+  --color-surface-card: #131f37;
+  --color-surface-hover: #1e293b;
+  --color-border: #1e293b;
+  --color-border-light: #334155;
+  --color-text-main: #f8fafc;
+  --color-text-muted: #94a3b8;
+  --color-text-dim: #64748b;
+  --header-bg: rgba(11, 19, 36, 0.85);
+  --header-border: rgba(30, 41, 59, 0.8);
+  --shadow-sm: 0 4px 14px -2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 12px 32px -4px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 36px -4px rgba(0, 0, 0, 0.5);
+  --card-active-bg: linear-gradient(180deg, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.95));
+  --hero-radial-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.18) 0%, rgba(245, 158, 11, 0.1) 100%);
+  --welcome-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.18) 0%, rgba(245, 158, 11, 0.1) 100%);
+  --calendar-empty-bg: rgba(15, 23, 42, 0.4);
+  --calendar-day-bg: #0b1324;
+  --calendar-has-event: rgba(19, 31, 55, 0.85);
 }
 
 *,
@@ -67,12 +74,14 @@ body {
   max-width: 100vw;
   overflow-x: clip;
   font-family: $font-sans;
-  background-color: $color-bg;
+  background: var(--ambient-sky);
+  background-attachment: fixed;
   color: $color-text-main;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color $transition-normal, color $transition-normal;
+  transition: background $duration-smooth $ease-cloud,
+              color $duration-smooth $ease-cloud;
   touch-action: pan-y;
 }
 
@@ -83,25 +92,27 @@ body {
   overflow-x: clip;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
-// Thanh cuộn tùy biến
+// Thanh cuộn mềm mại
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: $color-surface;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: $color-border-light;
+  background: $color-sky-border;
   border-radius: $radius-full;
+  transition: background-color $duration-fast $ease-cloud;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: $color-primary;
+  background: $color-sky-hover;
 }
 
 // Định dạng nút và input mặc định

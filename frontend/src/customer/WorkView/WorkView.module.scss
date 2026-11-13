@@ -97,13 +97,14 @@
 
 .btnPrimary {
   @include button-base;
-  background-color: $color-primary;
+  background: $gradient-sky-primary;
   color: #ffffff;
-  font-weight: 600;
+  font-weight: 700;
+  box-shadow: $shadow-cloud-sm;
 
   &:hover {
-    background-color: $color-primary-hover;
-    box-shadow: $shadow-glow;
+    filter: brightness(1.05);
+    box-shadow: $shadow-cloud-cushion;
   }
 
   @include mobile {
@@ -114,13 +115,15 @@
 
 .btnSecondary {
   @include button-base;
-  background-color: $color-surface-card;
+  background-color: var(--color-surface);
   color: $color-text-main;
-  border-color: $color-border;
+  border: 1px solid var(--color-glass-border);
+  box-shadow: $shadow-cloud-sm;
 
   &:hover {
-    border-color: $color-border-light;
-    background-color: $color-surface-hover;
+    border-color: $color-sky-border;
+    color: $color-sky-text;
+    background-color: $color-sky-subtle;
   }
 }
 
@@ -222,30 +225,32 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.45rem 0.85rem;
-  border-radius: $radius-full;
-  background-color: $color-surface;
-  border: 1px solid $color-border;
+  padding: 0.45rem 0.95rem;
+  border-radius: $radius-pill;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-glass-border);
   color: $color-text-muted;
   font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: all $transition-fast;
+  box-shadow: $shadow-cloud-sm;
+  @include cloud-button-press;
 
   &:hover {
-    color: $color-text-main;
-    border-color: $color-border-light;
+    color: $color-sky-text;
+    border-color: $color-sky-border;
   }
 
   &.activePill {
-    background-color: rgba(59, 130, 246, 0.12);
-    border-color: $color-primary;
-    color: $color-primary;
+    background-color: $color-sky-light;
+    border-color: $color-sky-border;
+    color: $color-sky-text;
+    font-weight: 700;
   }
 
   @include mobile {
-    padding: 0.38rem 0.7rem;
+    padding: 0.38rem 0.75rem;
     font-size: 0.8rem;
   }
 }
@@ -626,7 +631,7 @@
     }
 
     &.activeCard {
-      border-left: 4px solid #3b82f6;
+      border-left: 4px solid $color-sky-primary;
       border-top-width: 2px;
       transform: translateX(4px);
     }
@@ -1348,25 +1353,25 @@
 }
 
 .btnAiRoadmap {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: $gradient-dawn-mist;
   color: #ffffff;
   border: none;
-  border-radius: 8px;
-  padding: 0.65rem 1.25rem;
+  border-radius: $radius-md;
+  padding: 0.65rem 1.35rem;
   font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  box-shadow: $shadow-cloud-sm;
+  @include cloud-button-press;
 
   &:hover {
-    filter: brightness(1.1);
+    filter: brightness(1.06);
+    box-shadow: $shadow-cloud-cushion;
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
   }
 }
 

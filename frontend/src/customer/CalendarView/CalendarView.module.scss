@@ -1,6 +1,6 @@
 /**
  * TÊN FILE: CalendarView.module.scss
- * CÔNG DỤNG: Định dạng SCSS Module cho giao diện Lịch các ngày đã lưu (Giao diện 3) hỗ trợ Dark/Light mode và tối ưu lưới lịch 7 cột trên di động.
+ * CÔNG DỤNG: Định dạng SCSS Module cho giao diện Lịch theo phong cách Soft Cloud (kính sương mờ, các ô ngày bo tròn bồng bềnh, bảng màu mây trời).
  * PHẠM VI DÙNG: Phân hệ Customer (CalendarView).
  */
 
@@ -70,23 +70,29 @@
 .navBtn,
 .todayBtn {
   @include button-base;
-  padding: 0.5rem 0.9rem;
+  padding: 0.5rem 0.95rem;
   font-size: 0.85rem;
-  background-color: $color-surface;
-  border-color: $color-border;
+  background-color: var(--color-surface-cloud);
+  border: 1px solid var(--color-glass-border);
   color: $color-text-main;
+  @include cloud-button-press;
 
   &:hover {
-    border-color: $color-primary;
-    color: $color-primary;
+    border-color: $color-sky-border;
+    color: $color-sky-primary;
+    background-color: $color-sky-subtle;
   }
 }
 
 .todayBtn {
-  background-color: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: $color-primary;
+  background-color: $color-sky-light;
+  border-color: $color-sky-border;
+  color: $color-sky-primary;
   font-weight: 600;
+
+  &:hover {
+    background-color: $color-sky-border;
+  }
 }
 
 .currentMonthLabel {
@@ -96,9 +102,9 @@
   font-weight: 700;
   color: $color-text-main;
   padding: 0.45rem 0.85rem;
-  background-color: $color-surface-card;
+  background-color: var(--color-surface-cloud);
   border-radius: $radius-md;
-  border: 1px solid $color-border;
+  border: 1px solid var(--color-glass-border);
 
   @include mobile {
     min-width: 130px;
@@ -109,8 +115,8 @@
 .guestNotice {
   @include flex-between;
   padding: 0.85rem 1.25rem;
-  background-color: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  background-color: $color-warning-bg;
+  border: 1px solid $color-warning-border;
   border-radius: $radius-md;
   color: $color-warning;
   font-size: 0.88rem;
@@ -129,16 +135,18 @@
   padding: 0.35rem 0.9rem;
   font-size: 0.82rem;
   background-color: $color-warning;
-  color: #111827;
+  color: #ffffff;
   font-weight: 700;
+  border-radius: $radius-sm;
+  box-shadow: $shadow-cloud-sm;
 }
 
 .errorBanner {
   padding: 0.85rem 1.25rem;
   border-radius: $radius-md;
-  background-color: $color-danger-bg;
-  border: 1px solid $color-danger;
-  color: $color-danger;
+  background-color: $color-error-bg;
+  border: 1px solid $color-error-border;
+  color: $color-error;
   margin-bottom: 1.5rem;
   font-size: 0.9rem;
 }
@@ -156,14 +164,17 @@
 }
 
 // =====================================
-// BẢNG LƯỚI LỊCH THÁNG
+// BẢNG LƯỚI LỊCH THÁNG (Calendar Board)
 // =====================================
 .calendarBoard {
   @include card-base;
-  padding: 1.25rem;
+  border-radius: $radius-xl;
+  padding: 1.5rem;
+  box-shadow: $shadow-cloud-cushion;
 
   @include mobile {
     padding: 0.85rem 0.5rem;
+    border-radius: $radius-lg;
   }
 }
 
@@ -206,7 +217,7 @@
   min-height: 96px;
   background-color: var(--calendar-empty-bg);
   border-radius: $radius-sm;
-  border: 1px dashed $color-border;
+  border: 1px dashed var(--color-glass-border);
 
   @include mobile {
     min-height: 52px;
@@ -216,27 +227,33 @@
 .dayCell {
   min-height: 96px;
   padding: 0.45rem;
-  background-color: var(--calendar-day-bg, $color-bg);
-  border: 1px solid $color-border;
+  background-color: var(--calendar-day-bg, var(--color-surface));
+  border: 1px solid var(--color-glass-border);
   border-radius: $radius-sm;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   cursor: pointer;
-  transition: all $transition-fast;
+  box-shadow: $shadow-cloud-sm;
+  transition: border-color $duration-fast $ease-cloud,
+              transform $duration-fast $ease-cloud,
+              box-shadow $duration-fast $ease-cloud;
 
   &:hover {
-    border-color: $color-border-light;
-    background-color: $color-surface-hover;
+    border-color: $color-sky-border;
+    transform: translateY(-2px);
+    box-shadow: $shadow-cloud-md;
   }
 
   &.todayCell {
-    border-color: $color-primary;
-    background-color: rgba(59, 130, 246, 0.08);
+    border-color: $color-sky-primary;
+    background-color: $color-sky-subtle;
+    box-shadow: 0 0 0 2px $color-sky-light;
   }
 
   &.selectedCell {
-    box-shadow: 0 0 0 2px $color-primary;
+    box-shadow: 0 0 0 2px $color-sky-primary;
+    border-color: $color-sky-primary;
   }
 
   &.hasEventCell {
@@ -267,10 +284,10 @@
 .todayDot {
   font-size: 0.62rem;
   font-weight: 700;
-  color: $color-primary;
-  background-color: rgba(59, 130, 246, 0.2);
+  color: $color-sky-primary;
+  background-color: $color-sky-light;
   padding: 0.08rem 0.35rem;
-  border-radius: $radius-full;
+  border-radius: $radius-pill;
 
   @include mobile {
     display: none;
@@ -298,7 +315,7 @@
   color: $color-text-main;
   padding: 0.16rem 0.4rem;
   border-radius: 4px;
-  border-left: 3px solid $color-primary;
+  border-left: 3px solid $color-sky-primary;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -326,7 +343,8 @@
 
 .formCard,
 .savedListCard {
-  @include card-base;
+  @include cloud-frosted-glass;
+  border-radius: $radius-lg;
   padding: 1.35rem;
 
   @include mobile {
@@ -366,16 +384,13 @@
 .inputField {
   width: 100%;
   padding: 0.62rem 0.85rem;
-  background-color: $color-bg;
-  border: 1px solid $color-border;
-  border-radius: $radius-md;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-sm;
   color: $color-text-main;
   font-size: 0.9rem;
   outline: none;
-
-  &:focus {
-    border-color: $color-primary;
-  }
+  @include cloud-focus-ring;
 }
 
 .colorRow {
@@ -392,10 +407,15 @@
   border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
+  transition: transform $duration-fast $ease-cloud;
+
+  &:hover {
+    transform: scale(1.12);
+  }
 
   &.selected {
     border-color: #ffffff;
-    box-shadow: 0 0 0 2px $color-primary;
+    box-shadow: 0 0 0 2px $color-sky-primary;
   }
 }
 
@@ -416,21 +436,29 @@
 
 .btnPrimary {
   @include button-base;
-  background-color: $color-primary;
+  background: $gradient-sky-primary;
   color: #ffffff;
-  font-weight: 600;
+  font-weight: 700;
   width: 100%;
+  border-radius: $radius-md;
+  box-shadow: $shadow-cloud-sm;
 
   &:hover {
-    background-color: $color-primary-hover;
+    filter: brightness(1.05);
+    box-shadow: $shadow-cloud-cushion;
   }
 }
 
 .btnSecondary {
   @include button-base;
-  background-color: $color-surface-card;
-  border-color: $color-border;
+  background-color: var(--color-surface-cloud);
+  border: 1px solid var(--color-glass-border);
   color: $color-text-main;
+
+  &:hover {
+    border-color: $color-sky-border;
+    color: $color-sky-primary;
+  }
 }
 
 .savedListHeader {
@@ -446,9 +474,10 @@
   font-size: 0.76rem;
   font-weight: 700;
   padding: 0.2rem 0.6rem;
-  border-radius: $radius-full;
-  background-color: rgba(59, 130, 246, 0.16);
-  color: $color-primary;
+  border-radius: $radius-pill;
+  background-color: $color-sky-light;
+  color: $color-sky-primary;
+  border: 1px solid $color-sky-border;
 }
 
 .emptySaved {
@@ -469,9 +498,19 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 0.85rem;
-  background-color: $color-bg;
-  border: 1px solid $color-border;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-glass-border);
   border-radius: $radius-md;
+  box-shadow: $shadow-cloud-sm;
+  transition: border-color $duration-fast $ease-cloud,
+              transform $duration-fast $ease-cloud,
+              box-shadow $duration-fast $ease-cloud;
+
+  &:hover {
+    border-color: $color-sky-border;
+    transform: translateY(-1.5px);
+    box-shadow: $shadow-cloud-md;
+  }
 
   @include mobile {
     padding: 0.65rem 0.75rem;
@@ -482,7 +521,7 @@
 .savedColorBar {
   width: 4px;
   height: 34px;
-  border-radius: $radius-full;
+  border-radius: $radius-pill;
   flex-shrink: 0;
 }
 
@@ -513,26 +552,30 @@
   font-size: 0.68rem;
   font-weight: 600;
   padding: 0.1rem 0.45rem;
-  border-radius: $radius-full;
+  border-radius: $radius-pill;
 
   &.overdue {
-    background-color: $color-danger-bg;
-    color: $color-danger;
+    background-color: $color-error-bg;
+    color: $color-error;
+    border: 1px solid $color-error-border;
   }
 
   &.today {
     background-color: $color-warning-bg;
     color: $color-warning;
+    border: 1px solid $color-warning-border;
   }
 
   &.soon {
-    background-color: rgba(59, 130, 246, 0.16);
-    color: $color-primary;
+    background-color: $color-sky-light;
+    color: $color-sky-primary;
+    border: 1px solid $color-sky-border;
   }
 
   &.normal {
-    background-color: rgba(16, 185, 129, 0.14);
+    background-color: $color-success-bg;
     color: $color-success;
+    border: 1px solid $color-success-border;
   }
 }
 
@@ -550,14 +593,16 @@
   padding: 0.25rem 0.4rem;
   border-radius: $radius-sm;
   font-size: 0.9rem;
+  transition: color $duration-fast $ease-cloud,
+              background-color $duration-fast $ease-cloud;
 
   &:hover {
     color: $color-text-main;
-    background-color: rgba(125, 125, 125, 0.1);
+    background-color: $color-sky-subtle;
   }
 
   &.danger:hover {
-    color: $color-danger;
-    background-color: $color-danger-bg;
+    color: $color-error;
+    background-color: $color-error-bg;
   }
 }

@@ -1,61 +1,119 @@
 ﻿/**
  * TÊN FILE: _mixins.scss
- * CÔNG DỤNG: Các mixin tái sử dụng cho layout flexbox, responsive media queries và định dạng phần tử.
- * PHẠM VI DÙNG: Toàn hệ thống Frontend.
+ * CÔNG DỤNG: Các mixin tái sử dụng cho layout flexbox, responsive media queries và hiệu ứng Calm Pastel Sky.
+ * PHẠM VI DÙNG: Toàn hệ thống Frontend (Common).
  */
 
 @use 'variables' as *;
 
-// Căn giữa với Flexbox
+// 1. Căn chỉnh Flexbox tiện ích
 @mixin flex-center {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-// Căn cách đều hai đầu với Flexbox
 @mixin flex-between {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-// Định dạng Card chuẩn
-@mixin card-base {
-  background-color: $color-surface;
-  border: 1px solid $color-border;
-  border-radius: $radius-lg;
-  box-shadow: $shadow-md;
-  transition: border-color $transition-normal, transform $transition-normal;
+// 2. Kính sương mờ dịu mắt (Frosted Glass Overlay)
+@mixin cloud-frosted-glass($blur: 16px) {
+  background-color: $color-surface-cloud;
+  -webkit-backdrop-filter: blur($blur);
+  backdrop-filter: blur($blur);
+  border: 1px solid $color-glass-border;
+  box-shadow: $shadow-cloud-cushion;
+}
+
+// 3. Nhấc êm ái cho thẻ Đệm Mây (Cloud Cushion Hover)
+@mixin cloud-card-hover {
+  transition: transform $duration-smooth $ease-cloud,
+              box-shadow $duration-smooth $ease-cloud,
+              border-color $duration-smooth $ease-cloud;
 
   &:hover {
-    border-color: $color-border-light;
+    transform: translateY(-3px);
+    border-color: $color-sky-border;
+    box-shadow: $shadow-cloud-float;
   }
 }
 
-// Nút bấm cơ bản
+// 4. Phản hồi cơ học khi bấm nút (Không giật khung hình 60fps)
+@mixin cloud-button-press {
+  transition: transform $duration-fast $ease-cloud,
+              background-color $duration-fast $ease-cloud,
+              box-shadow $duration-fast $ease-cloud,
+              filter $duration-fast $ease-cloud;
+
+  &:active {
+    transform: scale(0.975);
+  }
+}
+
+// 5. Focus ring sương mai (Trợ năng và thẩm mỹ dịu mắt)
+@mixin cloud-focus-ring {
+  transition: border-color $duration-fast $ease-cloud,
+              box-shadow $duration-fast $ease-cloud;
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    border-color: $color-sky-primary;
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.25);
+  }
+}
+
+// 6. Định dạng Thẻ Đệm Mây chuẩn Calm Sky
+@mixin card-base {
+  background-color: $color-surface;
+  border: 1px solid $color-glass-border;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-cloud-cushion;
+  transition: border-color $duration-smooth $ease-cloud,
+              transform $duration-smooth $ease-cloud,
+              box-shadow $duration-smooth $ease-cloud;
+
+  &:hover {
+    border-color: $color-sky-border;
+    box-shadow: $shadow-cloud-float;
+    transform: translateY(-2.5px);
+  }
+}
+
+// 7. Định dạng Nút bấm cơ bản Calm Sky
 @mixin button-base {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 500;
-  padding: 0.65rem 1.25rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 0.65rem 1.35rem;
   border-radius: $radius-md;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all $transition-fast;
+  transition: transform $duration-fast $ease-cloud,
+              background-color $duration-fast $ease-cloud,
+              box-shadow $duration-fast $ease-cloud,
+              border-color $duration-fast $ease-cloud,
+              color $duration-fast $ease-cloud;
   text-decoration: none;
   outline: none;
 
+  &:active {
+    transform: scale(0.975);
+  }
+
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.55;
     cursor: not-allowed;
   }
 }
 
-// Responsive Breakpoints
+// 8. Responsive Breakpoints
 @mixin mobile {
   @media (max-width: #{$bp-mobile}) {
     @content;
