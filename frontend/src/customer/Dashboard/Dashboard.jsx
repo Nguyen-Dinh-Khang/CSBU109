@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../app/providers/AuthContext.jsx';
 import { fetchDashboard, toggleCheckGoal } from '../../shared/services/work.service.js';
 import { formatDisplayDate, getDeadlineBadgeInfo } from '../../shared/utils/dateFormat.js';
+import CompletionHistoryModal from './components/CompletionHistoryModal/index.js';
 import styles from './Dashboard.module.scss';
 
 const DEMO_OVERVIEW = {
@@ -66,6 +67,7 @@ export function Dashboard({ onOpenAuth, onNavigateTab, onSelectWorkFromDashboard
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [updatingGoalIds, setUpdatingGoalIds] = useState(new Set());
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
 
   /**
    * Tải dữ liệu tổng quan từ API /api/dashboard.
@@ -94,6 +96,14 @@ export function Dashboard({ onOpenAuth, onNavigateTab, onSelectWorkFromDashboard
       }
     }
   }, [isAuthenticated]);
+
+  /**
+   * Xử lý khi một mục tiêu được khôi phục từ Hộp thoại Lịch sử.
+   * Đồng bộ lại dữ liệu Dashboard ngầm để nạp lại mục tiêu nếu còn hạn chót.
+   */
+  const handleGoalRestoredFromHistory = useCallback(() => {
+    loadDashboardData(false);
+  }, [loadDashboardData]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -388,13 +398,23 @@ export function Dashboard({ onOpenAuth, onNavigateTab, onSelectWorkFromDashboard
                   5 mục tiêu chưa hoàn thành có hạn chót gần nhất từ mọi đầu việc
                 </p>
               </div>
-              <button
-                type="button"
-                className={styles.linkBtn}
-                onClick={() => onNavigateTab('works')}
-              >
-                Xem tất cả Work →
-              </button>
+              <div className={styles.panelActions}>
+                <button
+                  type="button"
+                  className={styles.historyBtn}
+                  onClick={() => setHistoryModalOpen(true)}
+                  title="Xem lịch sử các mục tiêu đã hoàn thành & hoàn tác nếu bấm nhầm"
+                >
+                  🕒 Lịch sử hoàn thành
+                </button>
+                <button
+                  type="button"
+                  className={styles.linkBtn}
+                  onClick={() => onNavigateTab('works')}
+                >
+                  Xem tất cả Work →
+                </button>
+              </div>
             </div>
 
             {upcomingGoals.length === 0 ? (
@@ -539,6 +559,13 @@ export function Dashboard({ onOpenAuth, onNavigateTab, onSelectWorkFromDashboard
           </section>
         </div>
       )}
+
+      {/* Hộp thoại Lịch sử Hoàn thành & Hoàn tác */}
+      <CompletionHistoryModal
+        isOpen={historyModalOpen}
+        onClose={() => setHistoryModalOpen(false)}
+        onRestoreGoal={handleGoalRestoredFromHistory}
+      />
     </div>
   );
 }

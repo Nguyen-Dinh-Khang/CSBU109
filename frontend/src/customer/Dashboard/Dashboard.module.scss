@@ -409,6 +409,47 @@
   }
 }
 
+.panelActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+
+  @include mobile {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 0.25rem;
+  }
+}
+
+.historyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: $radius-pill;
+  background-color: var(--color-surface);
+  color: $color-sky-text;
+  border: 1px solid $color-sky-border;
+  cursor: pointer;
+  @include cloud-button-press;
+  box-shadow: $shadow-cloud-sm;
+
+  &:hover {
+    background-color: $color-sky-subtle;
+    border-color: $color-sky-primary;
+    box-shadow: $shadow-cloud-float;
+  }
+
+  @include mobile {
+    font-size: 0.74rem;
+    padding: 0.28rem 0.6rem;
+  }
+}
+
 .linkBtn {
   background: none;
   border: none;

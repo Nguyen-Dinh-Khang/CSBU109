@@ -16,4 +16,7 @@ router.use(authenticateToken);
 /** Function 4: Dashboard tổng quan */
 router.get('/', dashboardController.getDashboardOverview);
 
+/** Lấy lịch sử các mục tiêu đã hoàn thành gần đây */
+router.get('/history', dashboardController.getCompletedGoalsHistory);
+
 export default router;

@@ -87,3 +87,49 @@ export async function getDashboardOverview(userId) {
     upcoming_dates: upcomingDates,
   };
 }
+
+/**
+ * Lấy danh sách các mục tiêu đã hoàn thành (Lịch sử hoàn thành) trên toàn bộ các đầu việc của người dùng.
+ * @param {string|number} userId - ID người dùng
+ * @param {number} [limit=20] - Số lượng mục tiêu tối đa trả về
+ * @returns {Promise<Array>} - Danh sách các mục tiêu đã hoàn thành, sắp xếp mới nhất lên đầu
+ */
+export async function getCompletedGoalsHistory(userId, limit = 20) {
+  const query = typeof userId === 'number' ? { userId } : { _id: userId };
+  const user = await User.findOne(query)
+    .select('works._id works.work_name works.goals')
+    .lean();
+
+  if (!user) {
+    const error = new Error('Không tìm thấy người dùng trong hệ thống.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const completedGoals = [];
+  const worksList = Array.isArray(user.works) ? user.works : [];
+
+  worksList.forEach((work) => {
+    const goalsList = Array.isArray(work.goals) ? work.goals : [];
+    goalsList.forEach((goal) => {
+      if (goal.goal_check) {
+        completedGoals.push({
+          goal_id: goal._id,
+          goal_name: goal.goal_name,
+          goal_end_date: goal.goal_end_date,
+          goal_color: goal.goal_color,
+          goal_range: goal.goal_range,
+          goal_check: true,
+          work_id: work._id,
+          work_name: work.work_name,
+          completed_at: goal.updatedAt || goal.createdAt || new Date(),
+        });
+      }
+    });
+  });
+
+  // Sắp xếp theo completed_at giảm dần (Mới nhất hoàn thành lên trước)
+  completedGoals.sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
+
+  return completedGoals.slice(0, Number(limit) || 20);
+}

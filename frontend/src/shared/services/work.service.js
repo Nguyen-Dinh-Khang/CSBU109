@@ -156,3 +156,15 @@ export async function fetchDashboard() {
   const response = await authApi.get('/api/dashboard');
   return response.data.data;
 }
+
+/**
+ * Gọi API lấy danh sách các mục tiêu đã hoàn thành gần đây (Lịch sử hoàn thành).
+ * @param {number} [limit=20] - Giới hạn số lượng mục tiêu trả về
+ * @returns {Promise<Array>} - Mảng các mục tiêu đã hoàn thành
+ */
+export async function fetchCompletedGoalsHistory(limit = 20) {
+  const response = await authApi.get('/api/dashboard/history', {
+    params: { limit },
+  });
+  return response.data.data || [];
+}

@@ -83,3 +83,42 @@ export function getDeadlineBadgeInfo(targetDate) {
     status: 'normal',
   };
 }
+
+/**
+ * Định dạng ngày giờ hiển thị dạng HH:mm dd/MM/yyyy.
+ * @param {string|Date} dateValue - Giá trị ngày đầu vào
+ * @returns {string} - Chuỗi ngày giờ
+ */
+export function formatDateTime(dateValue) {
+  if (!dateValue) return '';
+  const dateObj = new Date(dateValue);
+  if (Number.isNaN(dateObj.getTime())) return '';
+  const hours = String(dateObj.getHours()).padStart(2, '0');
+  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+  const dateStr = formatDisplayDate(dateObj);
+  return `${hours}:${minutes} ${dateStr}`;
+}
+
+/**
+ * Trả về chuỗi mô tả thời gian tương đối ngắn gọn (ví dụ: Vừa xong, 5 phút trước, 2 giờ trước).
+ * @param {string|Date} dateValue - Giá trị ngày đầu vào
+ * @returns {string} - Chuỗi mô tả tương đối
+ */
+export function formatRelativeTime(dateValue) {
+  if (!dateValue) return '';
+  const dateObj = new Date(dateValue);
+  if (Number.isNaN(dateObj.getTime())) return '';
+
+  const now = Date.now();
+  const diffSec = Math.floor((now - dateObj.getTime()) / 1000);
+
+  if (diffSec < 60) return 'Vừa xong';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} phút trước`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${diffHours} giờ trước`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays} ngày trước`;
+
+  return formatDisplayDate(dateObj);
+}
