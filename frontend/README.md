@@ -24,7 +24,8 @@ frontend/
     ├── components/                # [CẤP 1] Giao diện dùng chung ở nhiều màn hình (Header, SnakeGame)
     ├── common/                    # [CẤP 1] Màn hình/tính năng chung cho mọi đối tượng (AuthModal)
     ├── customer/                  # [CẤP 1] Toàn bộ tính năng DÀNH RIÊNG cho Khách hàng
-    │   ├── Dashboard/             # Giao diện 1: Tổng quan chỉ số, việc gấp, đếm ngược sự kiện
+    │   ├── Dashboard/             # Giao diện 1: Bảng điều khiển tổng quan (5 việc gấp, 3 ngày nhớ)
+    │   │   └── components/        # Subcomponents cục bộ (CompletionHistoryModal)
     │   ├── WorkView/              # Giao diện 2: Quản lý đầu việc, giai đoạn và mục tiêu chi tiết
     │   │   └── components/        # Subcomponents cục bộ (StageAccordion, Modals, AIRoadmap)
     │   └── CalendarView/          # Giao diện 3: Lịch tháng trực quan, đếm ngược ngày quan trọng
@@ -127,11 +128,16 @@ Frontend tuân thủ nghiêm ngặt 4 quy chuẩn bất biến theo [GEMINI.md](
 #### B. Phân Hệ Khách Hàng (Customer Views)
 | Tên File | Phân hệ | Nhiệm vụ duy nhất | Đầu vào & Phụ thuộc | Đầu ra & Cung cấp | Tại sao tách riêng? |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [`customer/Dashboard/Dashboard.jsx`](./src/customer/Dashboard/Dashboard.jsx) | Customer | Hiển thị bảng điều khiển tổng quan: thống kê tiến độ, đếm ngược sự kiện và danh sách việc gấp | `shared/services/work.service.js`, `dateFormat.js` | Giao diện tổng hợp nhanh cho trang chủ | Tập trung vào đọc dữ liệu tổng quan; cung cấp nút tắt điều hướng sang chi tiết WorkView. |
+| [`customer/Dashboard/Dashboard.jsx`](./src/customer/Dashboard/Dashboard.jsx) | Customer | Hiển thị bảng điều khiển tổng quan (5 việc gấp, 3 ngày nhớ), cơ chế Optimistic Check không giật trang và tích hợp xem lịch sử | `shared/services/work.service.js`, `dateFormat.js`, `CompletionHistoryModal` | Giao diện tổng hợp nhanh cho trang chủ | Tập trung vào đọc dữ liệu tổng quan; hỗ trợ hoàn thành nhanh tại chỗ chống bấm nhầm và mở hộp thoại lịch sử hoàn tác. |
 | [`customer/WorkView/WorkView.jsx`](./src/customer/WorkView/WorkView.jsx) | Customer | Quản lý toàn bộ vòng đời đầu việc (CRUD Work, Stage, Goal) và tích hợp trợ lý AI | `work.service.js`, `stage.service.js`, `useDebounce`, subcomponents | Giao diện quản lý tiến độ cốt lõi | Màn hình trọng tâm nhất của hệ thống; chia nhỏ thành các modal và accordion con để tối ưu render. |
 | [`customer/CalendarView/CalendarView.jsx`](./src/customer/CalendarView/CalendarView.jsx) | Customer | Hiển thị ma trận lịch tháng trực quan, đánh dấu các ngày thi cử và sự kiện | `work.service.js` (fetchDates) | Giao diện lịch biểu và đếm ngược | Chuyên trách biểu diễn dữ liệu theo trục thời gian tháng, độc lập khỏi giao diện danh sách công việc. |
 
-#### C. Các Subcomponents Thuộc WorkView
+#### C. Các Subcomponents Thuộc Dashboard
+| Tên File | Phân hệ | Nhiệm vụ duy nhất | Đầu vào & Phụ thuộc | Đầu ra & Cung cấp | Tại sao tách riêng? |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| [`Dashboard/components/CompletionHistoryModal`](./src/customer/Dashboard/components/CompletionHistoryModal/CompletionHistoryModal.jsx) | Customer | Hộp thoại tra cứu lịch sử các mục tiêu đã hoàn thành trên mọi đầu việc và hỗ trợ hoàn tác khôi phục | `shared/services/work.service.js` (`fetchCompletedGoalsHistory`, `toggleCheckGoal`), `dateFormat.js` | Giao diện modal khóa chiều cao ổn định, bộ lọc tìm kiếm và callback `onRestoreGoal` | Cô lập logic tìm kiếm, cuộn danh sách và hiệu ứng hoàn tác khỏi `Dashboard.jsx`, giúp mã nguồn Dashboard luôn tinh gọn. |
+
+#### D. Các Subcomponents Thuộc WorkView
 | Tên File | Phân hệ | Nhiệm vụ duy nhất | Đầu vào & Phụ thuộc | Đầu ra & Cung cấp | Tại sao tách riêng? |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | [`WorkView/components/StageAccordion`](./src/customer/WorkView/components/StageAccordion/StageAccordion.jsx) | Customer | Hiển thị danh sách các chặng theo dạng Accordion gấp mở, chứa các Goal con | Danh sách Stages và Goals của Work | Khung hiển thị trực quan các giai đoạn | Tách khỏi `WorkView.jsx` để tránh phình to file và dễ dàng tái sử dụng cho từng Work khác nhau. |
@@ -139,14 +145,14 @@ Frontend tuân thủ nghiêm ngặt 4 quy chuẩn bất biến theo [GEMINI.md](
 | [`WorkView/components/StageModal`](./src/customer/WorkView/components/StageModal/StageModal.jsx) | Customer | Hộp thoại tạo mới hoặc cấu hình màu sắc/thời hạn cho chặng | Form input (tên chặng, start/end date, color) | Gọi `createStage` hoặc `updateStage` | Cô lập form cấu hình chặng của đồ án. |
 | [`WorkView/components/AIRoadmapModal`](./src/customer/WorkView/components/AIRoadmapModal/AIRoadmapModal.jsx) | Customer | Hộp thoại tương tác với Gemini AI để sinh lộ trình tự động | User prompt, `shared/services/ai.service.js` | Hiển thị lộ trình AI gợi ý và cho phép người dùng áp dụng | Tách biệt tính năng AI khỏi luồng tạo việc thủ công. |
 
-#### D. Tầng Shared Services & Helpers
+#### E. Tầng Shared Services & Helpers
 | Tên File | Phân hệ | Nhiệm vụ duy nhất | Đầu vào & Phụ thuộc | Đầu ra & Cung cấp | Tại sao tách riêng? |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | [`shared/services/auth.service.js`](./src/shared/services/auth.service.js) | Shared | Cấu hình Axios instance `authApi` và các API đăng ký, đăng nhập, refresh token | `src/api.js`, Backend API `/api/auth` | Dữ liệu phiên đăng nhập và interceptor tự động | Quản lý xác thực tập trung, tự động chặn mã 401 để xử lý đăng xuất an toàn. |
-| [`shared/services/work.service.js`](./src/shared/services/work.service.js) | Shared | Đóng gói toàn bộ 10 API nghiệp vụ (Works, Goals, Dates, Dashboard) | `authApi` | Các hàm `fetchWorks`, `createWork`, `toggleCheckGoal`... | Đầu mối duy nhất cho việc gọi dữ liệu công việc; component chỉ cần import hàm cần dùng. |
+| [`shared/services/work.service.js`](./src/shared/services/work.service.js) | Shared | Đóng gói toàn bộ 11 API nghiệp vụ (Works, Goals, Dates, Dashboard, Lịch sử hoàn thành) | `authApi` | Các hàm `fetchWorks`, `createWork`, `toggleCheckGoal`, `fetchCompletedGoalsHistory`... | Đầu mối duy nhất cho việc gọi dữ liệu công việc; component chỉ cần import hàm cần dùng. |
 | [`shared/services/email.service.js`](./src/shared/services/email.service.js) | Shared | Tích hợp thư viện EmailJS để gửi mã OTP xác thực qua email thực tế | EmailJS SDK, biến môi trường `VITE_EMAILJS_*` | Trạng thái gửi email | Cô lập thư viện bên thứ ba; có chế độ Dev Mode tự động khi chưa cấu hình key. |
 | [`shared/hooks/useDebounce.js`](./src/shared/hooks/useDebounce.js) | Shared | Trì hoãn cập nhật giá trị trong một khoảng thời gian (delay) | `value`, `delay` (ms) | `debouncedValue` | Chống spam API khi người dùng gõ vào ô tìm kiếm (Search Input). |
-| [`shared/utils/dateFormat.js`](./src/shared/utils/dateFormat.js) | Shared | Chuyển đổi định dạng ngày tháng hiển thị và tính toán badge hạn nộp | Chuỗi ISO Date | Chuỗi ngày định dạng VN (`DD/MM/YYYY`) và thông tin hạn nộp | Chuẩn hóa hiển thị thời gian trên toàn ứng dụng. |
+| [`shared/utils/dateFormat.js`](./src/shared/utils/dateFormat.js) | Shared | Chuyển đổi định dạng ngày tháng hiển thị, tính toán badge hạn nộp và định dạng thời gian tương đối | Chuỗi ISO Date | Chuỗi ngày (`DD/MM/YYYY`), giờ (`HH:mm`), thời gian tương đối (`formatRelativeTime`) | Chuẩn hóa hiển thị thời gian thân thiện trên toàn ứng dụng. |
 
 ---
 
