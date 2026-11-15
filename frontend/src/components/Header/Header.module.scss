@@ -60,8 +60,7 @@
   @include cloud-button-press;
 
   &:hover {
-    background: #d1fae5;
-    border-color: #6ee7b7;
+    filter: brightness(1.1);
     box-shadow: $shadow-cloud-sm;
     transform: translateY(-1px);
   }

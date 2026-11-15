@@ -31,6 +31,42 @@
   --calendar-empty-bg: rgba(240, 249, 255, 0.5);
   --calendar-day-bg: #ffffff;
   --calendar-has-event: rgba(240, 249, 255, 0.95);
+
+  // Biến tương thích Card & Modal
+  --bg-card: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-sub: #f8fafc;
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --border-color: #e2e8f0;
+  --border-color-light: #cbd5e1;
+  --bg-completed: rgba(16, 185, 129, 0.05);
+
+  // Semantic Sky
+  --color-sky-bg: #f0f9ff;
+  --color-sky-subtle: #f0f9ff;
+  --color-sky-light: #e0f2fe;
+  --color-sky-border: #bae6fd;
+  --color-sky-text: #0284c7;
+
+  // Semantic Mint
+  --color-mint-bg: #ecfdf5;
+  --color-mint-border: #a7f3d0;
+  --color-mint-text: #059669;
+
+  // Semantic Honey
+  --color-honey-bg: #fffbeb;
+  --color-honey-border: #fde68a;
+  --color-honey-text: #b45309;
+
+  // Semantic Rose
+  --color-rose-bg: #fff1f2;
+  --color-rose-border: #fecdd3;
+  --color-rose-text: #be123c;
+
+  // Semantic Lilac
+  --color-lilac-bg: #f5f3ff;
+  --color-lilac-border: #ddd6fe;
+  --color-lilac-text: #6366f1;
 }
 
 [data-theme="dark"] {
@@ -52,11 +88,47 @@
   --shadow-md: 0 12px 32px -4px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 16px 36px -4px rgba(0, 0, 0, 0.5);
   --card-active-bg: linear-gradient(180deg, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.95));
-  --hero-radial-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.18) 0%, rgba(245, 158, 11, 0.1) 100%);
-  --welcome-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.18) 0%, rgba(245, 158, 11, 0.1) 100%);
+  --hero-radial-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.16) 0%, rgba(245, 158, 11, 0.08) 100%);
+  --welcome-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.16) 0%, rgba(245, 158, 11, 0.08) 100%);
   --calendar-empty-bg: rgba(15, 23, 42, 0.4);
   --calendar-day-bg: #0b1324;
   --calendar-has-event: rgba(19, 31, 55, 0.85);
+
+  // Biến tương thích Card & Modal trong Dark Mode
+  --bg-card: #0f172a;
+  --bg-secondary: #131f37;
+  --bg-sub: #0b1324;
+  --bg-hover: rgba(255, 255, 255, 0.06);
+  --border-color: #1e293b;
+  --border-color-light: #334155;
+  --bg-completed: rgba(16, 185, 129, 0.12);
+
+  // Semantic Sky trong Dark Mode
+  --color-sky-bg: rgba(56, 189, 248, 0.14);
+  --color-sky-subtle: rgba(56, 189, 248, 0.12);
+  --color-sky-light: rgba(56, 189, 248, 0.18);
+  --color-sky-border: rgba(56, 189, 248, 0.32);
+  --color-sky-text: #38bdf8;
+
+  // Semantic Mint trong Dark Mode
+  --color-mint-bg: rgba(16, 185, 129, 0.14);
+  --color-mint-border: rgba(16, 185, 129, 0.32);
+  --color-mint-text: #34d399;
+
+  // Semantic Honey trong Dark Mode
+  --color-honey-bg: rgba(245, 158, 11, 0.14);
+  --color-honey-border: rgba(245, 158, 11, 0.32);
+  --color-honey-text: #fbbf24;
+
+  // Semantic Rose trong Dark Mode
+  --color-rose-bg: rgba(244, 63, 94, 0.14);
+  --color-rose-border: rgba(244, 63, 94, 0.32);
+  --color-rose-text: #fb7185;
+
+  // Semantic Lilac trong Dark Mode
+  --color-lilac-bg: rgba(129, 140, 248, 0.14);
+  --color-lilac-border: rgba(129, 140, 248, 0.32);
+  --color-lilac-text: #c084fc;
 }
 
 *,

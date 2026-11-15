@@ -375,7 +375,7 @@
   min-width: 20px;
   border-radius: 5px;
   border: 2px solid var(--border-color, #cbd5e1);
-  background: #ffffff;
+  background: var(--bg-card, #ffffff);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
