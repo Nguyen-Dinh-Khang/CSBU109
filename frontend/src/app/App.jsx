@@ -101,7 +101,7 @@ function MainApp() {
 
       <footer className={styles.footer}>
         <p>
-          © 2026 StudyTrack — Hệ thống Quản lý Tổng quan (Dashboard), Đầu việc (Work) & Lịch ngày nhớ
+          © 2026 TrackPulse — Bắt trọn nhịp tiến độ | Quản lý Đầu việc (Work), Lộ trình (Roadmap) & Lịch ngày nhớ
           (Calendar).
         </p>
       </footer>

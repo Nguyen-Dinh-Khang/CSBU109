@@ -52,8 +52,8 @@ export function Header({ activeTab, onChangeTab, onOpenAuth, onOpenSnakeGame }) 
           >
             <div className={styles.logoIcon}>✦</div>
             <div className={styles.brandText}>
-              <span className={styles.brandName}>StudyTrack</span>
-              <span className={styles.brandDesc}>Quản lý Mục tiêu & Lịch trình</span>
+              <span className={styles.brandName}>TrackPulse</span>
+              <span className={styles.brandDesc}>Bắt trọn nhịp tiến độ</span>
             </div>
           </div>
         </div>

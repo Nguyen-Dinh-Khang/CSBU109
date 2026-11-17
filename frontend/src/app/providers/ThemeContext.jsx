@@ -8,7 +8,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 
 const ThemeContext = createContext(null);
 
-const THEME_STORAGE_KEY = 'studytrack_theme';
+const THEME_STORAGE_KEY = 'trackpulse_theme';
 
 /**
  * Lấy giao diện ban đầu từ localStorage hoặc dựa theo thiết lập của hệ điều hành.
@@ -16,7 +16,7 @@ const THEME_STORAGE_KEY = 'studytrack_theme';
  */
 function getInitialTheme() {
   if (typeof window === 'undefined') return 'light';
-  const saved = localStorage.getItem(THEME_STORAGE_KEY);
+  const saved = localStorage.getItem(THEME_STORAGE_KEY) || localStorage.getItem('studytrack_theme');
   if (saved === 'dark' || saved === 'light') {
     return saved;
   }
