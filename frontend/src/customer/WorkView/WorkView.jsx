@@ -919,7 +919,7 @@ export function WorkView({ initialSelectedWorkId, onClearInitialWork, onOpenAuth
           <input
             type="text"
             className={styles.searchInput}
-            placeholder="Tìm theo tên đầu việc (300ms debounce)..."
+            placeholder="Tìm theo tên đầu việc ..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
